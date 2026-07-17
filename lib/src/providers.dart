@@ -49,16 +49,53 @@ final ladderEventsProvider =
       return query.get();
     });
 
+/// Hold a reference to a [game] and its players.
+class GamePlayers {
+  /// Create an instance.
+  const GamePlayers({
+    required this.game,
+    required this.player1,
+    required this.player2,
+  });
+
+  /// The game to use.
+  final EventGame game;
+
+  /// The [game]'s player 1.
+  final Player player1;
+
+  /// The [game]'s player 2.
+  final Player player2;
+}
+
 /// Provide all games for the given event.
-final gamesProvider = FutureProvider.family<List<EventGame>, LadderEvent>((
+final gamesProvider = FutureProvider.family<List<GamePlayers>, LadderEvent>((
   ref,
   final event,
-) {
+) async {
   final db = ref.watch(databaseProvider);
-  return db.managers.eventGames
+  final rows = await db.managers.eventGames
       .filter((f) => f.eventId.id.equals(event.id))
       .orderBy((o) => o.id.asc())
       .get();
+  final games = <GamePlayers>[];
+  final players = <int, Player>{};
+  for (final game in rows) {
+    final player1 =
+        players[game.player1Id] ??
+        await db.managers.players
+            .filter((f) => f.id.equals(game.player1Id))
+            .getSingle();
+    players[player1.id] = player1;
+    final player2 =
+        players[game.player2Id] ??
+        await db.managers.players
+            .filter((f) => f.id.equals(game.player2Id))
+            .getSingle();
+    players[player2.id] = player2;
+    games.add(GamePlayers(game: game, player1: player1, player2: player2));
+  }
+  return games;
 });
 
 /// Provide all the games the given player has played.

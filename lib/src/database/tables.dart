@@ -16,10 +16,20 @@ mixin IdMixin on Table {
   IntColumn get id => integer().autoIncrement()();
 }
 
+/// A division which will hold 0 or more players.
+class PlayerDivisions extends Table with IdMixin {
+  /// The name of this division.
+  TextColumn get name => text()();
+}
+
 /// The players table.
 class Players extends Table with IdMixin {
   /// The name of the player.
   TextColumn get name => text()();
+
+  /// The ID of the division this player belongs to.
+  IntColumn get divisionId =>
+      integer().references(PlayerDivisions, #id, onDelete: KeyAction.cascade)();
 
   /// When the player was deactivated.
   ///
@@ -32,6 +42,10 @@ class Players extends Table with IdMixin {
 class LadderEvents extends Table with IdMixin {
   /// The date and time of the event.
   DateTimeColumn get when => dateTime().withDefault(currentDateAndTime)();
+
+  /// The ID of the division this event is for.
+  IntColumn get divisionId =>
+      integer().references(PlayerDivisions, #id, onDelete: KeyAction.cascade)();
 }
 
 /// The games table.

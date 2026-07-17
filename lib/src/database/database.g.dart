@@ -3,6 +3,198 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class $PlayerDivisionsTable extends PlayerDivisions
+    with TableInfo<$PlayerDivisionsTable, PlayerDivision> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlayerDivisionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'player_divisions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PlayerDivision> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PlayerDivision map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlayerDivision(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  $PlayerDivisionsTable createAlias(String alias) {
+    return $PlayerDivisionsTable(attachedDatabase, alias);
+  }
+}
+
+class PlayerDivision extends DataClass implements Insertable<PlayerDivision> {
+  /// The primary key.
+  final int id;
+
+  /// The name of this division.
+  final String name;
+  const PlayerDivision({required this.id, required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  PlayerDivisionsCompanion toCompanion(bool nullToAbsent) {
+    return PlayerDivisionsCompanion(id: Value(id), name: Value(name));
+  }
+
+  factory PlayerDivision.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlayerDivision(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  PlayerDivision copyWith({int? id, String? name}) =>
+      PlayerDivision(id: id ?? this.id, name: name ?? this.name);
+  PlayerDivision copyWithCompanion(PlayerDivisionsCompanion data) {
+    return PlayerDivision(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlayerDivision(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlayerDivision &&
+          other.id == this.id &&
+          other.name == this.name);
+}
+
+class PlayerDivisionsCompanion extends UpdateCompanion<PlayerDivision> {
+  final Value<int> id;
+  final Value<String> name;
+  const PlayerDivisionsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+  });
+  PlayerDivisionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+  }) : name = Value(name);
+  static Insertable<PlayerDivision> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+    });
+  }
+
+  PlayerDivisionsCompanion copyWith({Value<int>? id, Value<String>? name}) {
+    return PlayerDivisionsCompanion(id: id ?? this.id, name: name ?? this.name);
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlayerDivisionsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -30,6 +222,20 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _divisionIdMeta = const VerificationMeta(
+    'divisionId',
+  );
+  @override
+  late final GeneratedColumn<int> divisionId = GeneratedColumn<int>(
+    'division_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES player_divisions (id) ON DELETE CASCADE',
+    ),
+  );
   static const VerificationMeta _deactivatedMeta = const VerificationMeta(
     'deactivated',
   );
@@ -42,7 +248,7 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, deactivated];
+  List<GeneratedColumn> get $columns => [id, name, divisionId, deactivated];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -65,6 +271,14 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('division_id')) {
+      context.handle(
+        _divisionIdMeta,
+        divisionId.isAcceptableOrUnknown(data['division_id']!, _divisionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_divisionIdMeta);
     }
     if (data.containsKey('deactivated')) {
       context.handle(
@@ -92,6 +306,10 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      divisionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}division_id'],
+      )!,
       deactivated: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}deactivated'],
@@ -112,17 +330,26 @@ class Player extends DataClass implements Insertable<Player> {
   /// The name of the player.
   final String name;
 
+  /// The ID of the division this player belongs to.
+  final int divisionId;
+
   /// When the player was deactivated.
   ///
   /// If [deactivated] is not `null`, then this player will not show up in the
   /// players list.
   final DateTime? deactivated;
-  const Player({required this.id, required this.name, this.deactivated});
+  const Player({
+    required this.id,
+    required this.name,
+    required this.divisionId,
+    this.deactivated,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['division_id'] = Variable<int>(divisionId);
     if (!nullToAbsent || deactivated != null) {
       map['deactivated'] = Variable<DateTime>(deactivated);
     }
@@ -133,6 +360,7 @@ class Player extends DataClass implements Insertable<Player> {
     return PlayersCompanion(
       id: Value(id),
       name: Value(name),
+      divisionId: Value(divisionId),
       deactivated: deactivated == null && nullToAbsent
           ? const Value.absent()
           : Value(deactivated),
@@ -147,6 +375,7 @@ class Player extends DataClass implements Insertable<Player> {
     return Player(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      divisionId: serializer.fromJson<int>(json['divisionId']),
       deactivated: serializer.fromJson<DateTime?>(json['deactivated']),
     );
   }
@@ -156,6 +385,7 @@ class Player extends DataClass implements Insertable<Player> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'divisionId': serializer.toJson<int>(divisionId),
       'deactivated': serializer.toJson<DateTime?>(deactivated),
     };
   }
@@ -163,16 +393,21 @@ class Player extends DataClass implements Insertable<Player> {
   Player copyWith({
     int? id,
     String? name,
+    int? divisionId,
     Value<DateTime?> deactivated = const Value.absent(),
   }) => Player(
     id: id ?? this.id,
     name: name ?? this.name,
+    divisionId: divisionId ?? this.divisionId,
     deactivated: deactivated.present ? deactivated.value : this.deactivated,
   );
   Player copyWithCompanion(PlayersCompanion data) {
     return Player(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      divisionId: data.divisionId.present
+          ? data.divisionId.value
+          : this.divisionId,
       deactivated: data.deactivated.present
           ? data.deactivated.value
           : this.deactivated,
@@ -184,44 +419,52 @@ class Player extends DataClass implements Insertable<Player> {
     return (StringBuffer('Player(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('divisionId: $divisionId, ')
           ..write('deactivated: $deactivated')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, deactivated);
+  int get hashCode => Object.hash(id, name, divisionId, deactivated);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Player &&
           other.id == this.id &&
           other.name == this.name &&
+          other.divisionId == this.divisionId &&
           other.deactivated == this.deactivated);
 }
 
 class PlayersCompanion extends UpdateCompanion<Player> {
   final Value<int> id;
   final Value<String> name;
+  final Value<int> divisionId;
   final Value<DateTime?> deactivated;
   const PlayersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.divisionId = const Value.absent(),
     this.deactivated = const Value.absent(),
   });
   PlayersCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    required int divisionId,
     this.deactivated = const Value.absent(),
-  }) : name = Value(name);
+  }) : name = Value(name),
+       divisionId = Value(divisionId);
   static Insertable<Player> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<int>? divisionId,
     Expression<DateTime>? deactivated,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (divisionId != null) 'division_id': divisionId,
       if (deactivated != null) 'deactivated': deactivated,
     });
   }
@@ -229,11 +472,13 @@ class PlayersCompanion extends UpdateCompanion<Player> {
   PlayersCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
+    Value<int>? divisionId,
     Value<DateTime?>? deactivated,
   }) {
     return PlayersCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      divisionId: divisionId ?? this.divisionId,
       deactivated: deactivated ?? this.deactivated,
     );
   }
@@ -247,6 +492,9 @@ class PlayersCompanion extends UpdateCompanion<Player> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (divisionId.present) {
+      map['division_id'] = Variable<int>(divisionId.value);
+    }
     if (deactivated.present) {
       map['deactivated'] = Variable<DateTime>(deactivated.value);
     }
@@ -258,6 +506,7 @@ class PlayersCompanion extends UpdateCompanion<Player> {
     return (StringBuffer('PlayersCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('divisionId: $divisionId, ')
           ..write('deactivated: $deactivated')
           ..write(')'))
         .toString();
@@ -293,8 +542,22 @@ class $LadderEventsTable extends LadderEvents
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _divisionIdMeta = const VerificationMeta(
+    'divisionId',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, when];
+  late final GeneratedColumn<int> divisionId = GeneratedColumn<int>(
+    'division_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES player_divisions (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, when, divisionId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -316,6 +579,14 @@ class $LadderEventsTable extends LadderEvents
         when.isAcceptableOrUnknown(data['when']!, _whenMeta),
       );
     }
+    if (data.containsKey('division_id')) {
+      context.handle(
+        _divisionIdMeta,
+        divisionId.isAcceptableOrUnknown(data['division_id']!, _divisionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_divisionIdMeta);
+    }
     return context;
   }
 
@@ -333,6 +604,10 @@ class $LadderEventsTable extends LadderEvents
         DriftSqlType.dateTime,
         data['${effectivePrefix}when'],
       )!,
+      divisionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}division_id'],
+      )!,
     );
   }
 
@@ -348,17 +623,29 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
 
   /// The date and time of the event.
   final DateTime when;
-  const LadderEvent({required this.id, required this.when});
+
+  /// The ID of the division this event is for.
+  final int divisionId;
+  const LadderEvent({
+    required this.id,
+    required this.when,
+    required this.divisionId,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['when'] = Variable<DateTime>(when);
+    map['division_id'] = Variable<int>(divisionId);
     return map;
   }
 
   LadderEventsCompanion toCompanion(bool nullToAbsent) {
-    return LadderEventsCompanion(id: Value(id), when: Value(when));
+    return LadderEventsCompanion(
+      id: Value(id),
+      when: Value(when),
+      divisionId: Value(divisionId),
+    );
   }
 
   factory LadderEvent.fromJson(
@@ -369,6 +656,7 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
     return LadderEvent(
       id: serializer.fromJson<int>(json['id']),
       when: serializer.fromJson<DateTime>(json['when']),
+      divisionId: serializer.fromJson<int>(json['divisionId']),
     );
   }
   @override
@@ -377,15 +665,23 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'when': serializer.toJson<DateTime>(when),
+      'divisionId': serializer.toJson<int>(divisionId),
     };
   }
 
-  LadderEvent copyWith({int? id, DateTime? when}) =>
-      LadderEvent(id: id ?? this.id, when: when ?? this.when);
+  LadderEvent copyWith({int? id, DateTime? when, int? divisionId}) =>
+      LadderEvent(
+        id: id ?? this.id,
+        when: when ?? this.when,
+        divisionId: divisionId ?? this.divisionId,
+      );
   LadderEvent copyWithCompanion(LadderEventsCompanion data) {
     return LadderEvent(
       id: data.id.present ? data.id.value : this.id,
       when: data.when.present ? data.when.value : this.when,
+      divisionId: data.divisionId.present
+          ? data.divisionId.value
+          : this.divisionId,
     );
   }
 
@@ -393,42 +689,59 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
   String toString() {
     return (StringBuffer('LadderEvent(')
           ..write('id: $id, ')
-          ..write('when: $when')
+          ..write('when: $when, ')
+          ..write('divisionId: $divisionId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, when);
+  int get hashCode => Object.hash(id, when, divisionId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is LadderEvent && other.id == this.id && other.when == this.when);
+      (other is LadderEvent &&
+          other.id == this.id &&
+          other.when == this.when &&
+          other.divisionId == this.divisionId);
 }
 
 class LadderEventsCompanion extends UpdateCompanion<LadderEvent> {
   final Value<int> id;
   final Value<DateTime> when;
+  final Value<int> divisionId;
   const LadderEventsCompanion({
     this.id = const Value.absent(),
     this.when = const Value.absent(),
+    this.divisionId = const Value.absent(),
   });
   LadderEventsCompanion.insert({
     this.id = const Value.absent(),
     this.when = const Value.absent(),
-  });
+    required int divisionId,
+  }) : divisionId = Value(divisionId);
   static Insertable<LadderEvent> custom({
     Expression<int>? id,
     Expression<DateTime>? when,
+    Expression<int>? divisionId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (when != null) 'when': when,
+      if (divisionId != null) 'division_id': divisionId,
     });
   }
 
-  LadderEventsCompanion copyWith({Value<int>? id, Value<DateTime>? when}) {
-    return LadderEventsCompanion(id: id ?? this.id, when: when ?? this.when);
+  LadderEventsCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime>? when,
+    Value<int>? divisionId,
+  }) {
+    return LadderEventsCompanion(
+      id: id ?? this.id,
+      when: when ?? this.when,
+      divisionId: divisionId ?? this.divisionId,
+    );
   }
 
   @override
@@ -440,6 +753,9 @@ class LadderEventsCompanion extends UpdateCompanion<LadderEvent> {
     if (when.present) {
       map['when'] = Variable<DateTime>(when.value);
     }
+    if (divisionId.present) {
+      map['division_id'] = Variable<int>(divisionId.value);
+    }
     return map;
   }
 
@@ -447,7 +763,8 @@ class LadderEventsCompanion extends UpdateCompanion<LadderEvent> {
   String toString() {
     return (StringBuffer('LadderEventsCompanion(')
           ..write('id: $id, ')
-          ..write('when: $when')
+          ..write('when: $when, ')
+          ..write('divisionId: $divisionId')
           ..write(')'))
         .toString();
   }
@@ -1286,6 +1603,9 @@ class PointsResetsCompanion extends UpdateCompanion<PointsReset> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $PlayerDivisionsTable playerDivisions = $PlayerDivisionsTable(
+    this,
+  );
   late final $PlayersTable players = $PlayersTable(this);
   late final $LadderEventsTable ladderEvents = $LadderEventsTable(this);
   late final $EventGamesTable eventGames = $EventGamesTable(this);
@@ -1296,6 +1616,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    playerDivisions,
     players,
     ladderEvents,
     eventGames,
@@ -1304,6 +1625,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'player_divisions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('players', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'player_divisions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('ladder_events', kind: UpdateKind.delete)],
+    ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'ladder_events',
@@ -1335,22 +1670,369 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ]);
 }
 
+typedef $$PlayerDivisionsTableCreateCompanionBuilder =
+    PlayerDivisionsCompanion Function({Value<int> id, required String name});
+typedef $$PlayerDivisionsTableUpdateCompanionBuilder =
+    PlayerDivisionsCompanion Function({Value<int> id, Value<String> name});
+
+final class $$PlayerDivisionsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $PlayerDivisionsTable, PlayerDivision> {
+  $$PlayerDivisionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$PlayersTable, List<Player>> _playersRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.players,
+    aliasName: 'player_divisions__id__players__division_id',
+  );
+
+  $$PlayersTableProcessedTableManager get playersRefs {
+    final manager = $$PlayersTableTableManager(
+      $_db,
+      $_db.players,
+    ).filter((f) => f.divisionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_playersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$LadderEventsTable, List<LadderEvent>>
+  _ladderEventsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.ladderEvents,
+    aliasName: 'player_divisions__id__ladder_events__division_id',
+  );
+
+  $$LadderEventsTableProcessedTableManager get ladderEventsRefs {
+    final manager = $$LadderEventsTableTableManager(
+      $_db,
+      $_db.ladderEvents,
+    ).filter((f) => f.divisionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_ladderEventsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$PlayerDivisionsTableFilterComposer
+    extends Composer<_$AppDatabase, $PlayerDivisionsTable> {
+  $$PlayerDivisionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> playersRefs(
+    Expression<bool> Function($$PlayersTableFilterComposer f) f,
+  ) {
+    final $$PlayersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.players,
+      getReferencedColumn: (t) => t.divisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlayersTableFilterComposer(
+            $db: $db,
+            $table: $db.players,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> ladderEventsRefs(
+    Expression<bool> Function($$LadderEventsTableFilterComposer f) f,
+  ) {
+    final $$LadderEventsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.ladderEvents,
+      getReferencedColumn: (t) => t.divisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LadderEventsTableFilterComposer(
+            $db: $db,
+            $table: $db.ladderEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PlayerDivisionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PlayerDivisionsTable> {
+  $$PlayerDivisionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PlayerDivisionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PlayerDivisionsTable> {
+  $$PlayerDivisionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  Expression<T> playersRefs<T extends Object>(
+    Expression<T> Function($$PlayersTableAnnotationComposer a) f,
+  ) {
+    final $$PlayersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.players,
+      getReferencedColumn: (t) => t.divisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlayersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.players,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> ladderEventsRefs<T extends Object>(
+    Expression<T> Function($$LadderEventsTableAnnotationComposer a) f,
+  ) {
+    final $$LadderEventsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.ladderEvents,
+      getReferencedColumn: (t) => t.divisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LadderEventsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.ladderEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PlayerDivisionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PlayerDivisionsTable,
+          PlayerDivision,
+          $$PlayerDivisionsTableFilterComposer,
+          $$PlayerDivisionsTableOrderingComposer,
+          $$PlayerDivisionsTableAnnotationComposer,
+          $$PlayerDivisionsTableCreateCompanionBuilder,
+          $$PlayerDivisionsTableUpdateCompanionBuilder,
+          (PlayerDivision, $$PlayerDivisionsTableReferences),
+          PlayerDivision,
+          PrefetchHooks Function({bool playersRefs, bool ladderEventsRefs})
+        > {
+  $$PlayerDivisionsTableTableManager(
+    _$AppDatabase db,
+    $PlayerDivisionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PlayerDivisionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PlayerDivisionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PlayerDivisionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+              }) => PlayerDivisionsCompanion(id: id, name: name),
+          createCompanionCallback:
+              ({Value<int> id = const Value.absent(), required String name}) =>
+                  PlayerDivisionsCompanion.insert(id: id, name: name),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PlayerDivisionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({playersRefs = false, ladderEventsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (playersRefs) db.players,
+                    if (ladderEventsRefs) db.ladderEvents,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (playersRefs)
+                        await $_getPrefetchedData<
+                          PlayerDivision,
+                          $PlayerDivisionsTable,
+                          Player
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PlayerDivisionsTableReferences
+                              ._playersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PlayerDivisionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).playersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.divisionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (ladderEventsRefs)
+                        await $_getPrefetchedData<
+                          PlayerDivision,
+                          $PlayerDivisionsTable,
+                          LadderEvent
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PlayerDivisionsTableReferences
+                              ._ladderEventsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PlayerDivisionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).ladderEventsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.divisionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$PlayerDivisionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PlayerDivisionsTable,
+      PlayerDivision,
+      $$PlayerDivisionsTableFilterComposer,
+      $$PlayerDivisionsTableOrderingComposer,
+      $$PlayerDivisionsTableAnnotationComposer,
+      $$PlayerDivisionsTableCreateCompanionBuilder,
+      $$PlayerDivisionsTableUpdateCompanionBuilder,
+      (PlayerDivision, $$PlayerDivisionsTableReferences),
+      PlayerDivision,
+      PrefetchHooks Function({bool playersRefs, bool ladderEventsRefs})
+    >;
 typedef $$PlayersTableCreateCompanionBuilder =
     PlayersCompanion Function({
       Value<int> id,
       required String name,
+      required int divisionId,
       Value<DateTime?> deactivated,
     });
 typedef $$PlayersTableUpdateCompanionBuilder =
     PlayersCompanion Function({
       Value<int> id,
       Value<String> name,
+      Value<int> divisionId,
       Value<DateTime?> deactivated,
     });
 
 final class $$PlayersTableReferences
     extends BaseReferences<_$AppDatabase, $PlayersTable, Player> {
   $$PlayersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $PlayerDivisionsTable _divisionIdTable(_$AppDatabase db) => db
+      .playerDivisions
+      .createAlias('players__division_id__player_divisions__id');
+
+  $$PlayerDivisionsTableProcessedTableManager get divisionId {
+    final $_column = $_itemColumn<int>('division_id')!;
+
+    final manager = $$PlayerDivisionsTableTableManager(
+      $_db,
+      $_db.playerDivisions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_divisionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<$EventGamesTable, List<EventGame>>
   _player1GamesTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -1412,6 +2094,29 @@ class $$PlayersTableFilterComposer
     column: $table.deactivated,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$PlayerDivisionsTableFilterComposer get divisionId {
+    final $$PlayerDivisionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.divisionId,
+      referencedTable: $db.playerDivisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlayerDivisionsTableFilterComposer(
+            $db: $db,
+            $table: $db.playerDivisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> player1Games(
     Expression<bool> Function($$EventGamesTableFilterComposer f) f,
@@ -1487,6 +2192,29 @@ class $$PlayersTableOrderingComposer
     column: $table.deactivated,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$PlayerDivisionsTableOrderingComposer get divisionId {
+    final $$PlayerDivisionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.divisionId,
+      referencedTable: $db.playerDivisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlayerDivisionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.playerDivisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PlayersTableAnnotationComposer
@@ -1508,6 +2236,29 @@ class $$PlayersTableAnnotationComposer
     column: $table.deactivated,
     builder: (column) => column,
   );
+
+  $$PlayerDivisionsTableAnnotationComposer get divisionId {
+    final $$PlayerDivisionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.divisionId,
+      referencedTable: $db.playerDivisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlayerDivisionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.playerDivisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> player1Games<T extends Object>(
     Expression<T> Function($$EventGamesTableAnnotationComposer a) f,
@@ -1573,7 +2324,11 @@ class $$PlayersTableTableManager
           $$PlayersTableUpdateCompanionBuilder,
           (Player, $$PlayersTableReferences),
           Player,
-          PrefetchHooks Function({bool player1Games, bool player2Games})
+          PrefetchHooks Function({
+            bool divisionId,
+            bool player1Games,
+            bool player2Games,
+          })
         > {
   $$PlayersTableTableManager(_$AppDatabase db, $PlayersTable table)
     : super(
@@ -1590,20 +2345,24 @@ class $$PlayersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<int> divisionId = const Value.absent(),
                 Value<DateTime?> deactivated = const Value.absent(),
               }) => PlayersCompanion(
                 id: id,
                 name: name,
+                divisionId: divisionId,
                 deactivated: deactivated,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
+                required int divisionId,
                 Value<DateTime?> deactivated = const Value.absent(),
               }) => PlayersCompanion.insert(
                 id: id,
                 name: name,
+                divisionId: divisionId,
                 deactivated: deactivated,
               ),
           withReferenceMapper: (p0) => p0
@@ -1615,14 +2374,49 @@ class $$PlayersTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({player1Games = false, player2Games = false}) {
+              ({
+                divisionId = false,
+                player1Games = false,
+                player2Games = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (player1Games) db.eventGames,
                     if (player2Games) db.eventGames,
                   ],
-                  addJoins: null,
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (divisionId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.divisionId,
+                                    referencedTable: $$PlayersTableReferences
+                                        ._divisionIdTable(db),
+                                    referencedColumn: $$PlayersTableReferences
+                                        ._divisionIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (player1Games)
@@ -1687,16 +2481,46 @@ typedef $$PlayersTableProcessedTableManager =
       $$PlayersTableUpdateCompanionBuilder,
       (Player, $$PlayersTableReferences),
       Player,
-      PrefetchHooks Function({bool player1Games, bool player2Games})
+      PrefetchHooks Function({
+        bool divisionId,
+        bool player1Games,
+        bool player2Games,
+      })
     >;
 typedef $$LadderEventsTableCreateCompanionBuilder =
-    LadderEventsCompanion Function({Value<int> id, Value<DateTime> when});
+    LadderEventsCompanion Function({
+      Value<int> id,
+      Value<DateTime> when,
+      required int divisionId,
+    });
 typedef $$LadderEventsTableUpdateCompanionBuilder =
-    LadderEventsCompanion Function({Value<int> id, Value<DateTime> when});
+    LadderEventsCompanion Function({
+      Value<int> id,
+      Value<DateTime> when,
+      Value<int> divisionId,
+    });
 
 final class $$LadderEventsTableReferences
     extends BaseReferences<_$AppDatabase, $LadderEventsTable, LadderEvent> {
   $$LadderEventsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $PlayerDivisionsTable _divisionIdTable(_$AppDatabase db) => db
+      .playerDivisions
+      .createAlias('ladder_events__division_id__player_divisions__id');
+
+  $$PlayerDivisionsTableProcessedTableManager get divisionId {
+    final $_column = $_itemColumn<int>('division_id')!;
+
+    final manager = $$PlayerDivisionsTableTableManager(
+      $_db,
+      $_db.playerDivisions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_divisionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<$EventGamesTable, List<EventGame>>
   _eventGamesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -1735,6 +2559,29 @@ class $$LadderEventsTableFilterComposer
     column: $table.when,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$PlayerDivisionsTableFilterComposer get divisionId {
+    final $$PlayerDivisionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.divisionId,
+      referencedTable: $db.playerDivisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlayerDivisionsTableFilterComposer(
+            $db: $db,
+            $table: $db.playerDivisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> eventGamesRefs(
     Expression<bool> Function($$EventGamesTableFilterComposer f) f,
@@ -1780,6 +2627,29 @@ class $$LadderEventsTableOrderingComposer
     column: $table.when,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$PlayerDivisionsTableOrderingComposer get divisionId {
+    final $$PlayerDivisionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.divisionId,
+      referencedTable: $db.playerDivisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlayerDivisionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.playerDivisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$LadderEventsTableAnnotationComposer
@@ -1796,6 +2666,29 @@ class $$LadderEventsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get when =>
       $composableBuilder(column: $table.when, builder: (column) => column);
+
+  $$PlayerDivisionsTableAnnotationComposer get divisionId {
+    final $$PlayerDivisionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.divisionId,
+      referencedTable: $db.playerDivisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlayerDivisionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.playerDivisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> eventGamesRefs<T extends Object>(
     Expression<T> Function($$EventGamesTableAnnotationComposer a) f,
@@ -1836,7 +2729,7 @@ class $$LadderEventsTableTableManager
           $$LadderEventsTableUpdateCompanionBuilder,
           (LadderEvent, $$LadderEventsTableReferences),
           LadderEvent,
-          PrefetchHooks Function({bool eventGamesRefs})
+          PrefetchHooks Function({bool divisionId, bool eventGamesRefs})
         > {
   $$LadderEventsTableTableManager(_$AppDatabase db, $LadderEventsTable table)
     : super(
@@ -1853,12 +2746,22 @@ class $$LadderEventsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<DateTime> when = const Value.absent(),
-              }) => LadderEventsCompanion(id: id, when: when),
+                Value<int> divisionId = const Value.absent(),
+              }) => LadderEventsCompanion(
+                id: id,
+                when: when,
+                divisionId: divisionId,
+              ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<DateTime> when = const Value.absent(),
-              }) => LadderEventsCompanion.insert(id: id, when: when),
+                required int divisionId,
+              }) => LadderEventsCompanion.insert(
+                id: id,
+                when: when,
+                divisionId: divisionId,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -1867,36 +2770,72 @@ class $$LadderEventsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({eventGamesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (eventGamesRefs) db.eventGames],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (eventGamesRefs)
-                    await $_getPrefetchedData<
-                      LadderEvent,
-                      $LadderEventsTable,
-                      EventGame
-                    >(
-                      currentTable: table,
-                      referencedTable: $$LadderEventsTableReferences
-                          ._eventGamesRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$LadderEventsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).eventGamesRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.eventId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({divisionId = false, eventGamesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (eventGamesRefs) db.eventGames],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (divisionId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.divisionId,
+                                    referencedTable:
+                                        $$LadderEventsTableReferences
+                                            ._divisionIdTable(db),
+                                    referencedColumn:
+                                        $$LadderEventsTableReferences
+                                            ._divisionIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (eventGamesRefs)
+                        await $_getPrefetchedData<
+                          LadderEvent,
+                          $LadderEventsTable,
+                          EventGame
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LadderEventsTableReferences
+                              ._eventGamesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LadderEventsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).eventGamesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.eventId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -1913,7 +2852,7 @@ typedef $$LadderEventsTableProcessedTableManager =
       $$LadderEventsTableUpdateCompanionBuilder,
       (LadderEvent, $$LadderEventsTableReferences),
       LadderEvent,
-      PrefetchHooks Function({bool eventGamesRefs})
+      PrefetchHooks Function({bool divisionId, bool eventGamesRefs})
     >;
 typedef $$EventGamesTableCreateCompanionBuilder =
     EventGamesCompanion Function({
@@ -2919,6 +3858,8 @@ typedef $$PointsResetsTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$PlayerDivisionsTableTableManager get playerDivisions =>
+      $$PlayerDivisionsTableTableManager(_db, _db.playerDivisions);
   $$PlayersTableTableManager get players =>
       $$PlayersTableTableManager(_db, _db.players);
   $$LadderEventsTableTableManager get ladderEvents =>

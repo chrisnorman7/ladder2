@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/providers.dart';
 import 'package:ladder2/widgets/async_value_builder.dart';
 import 'package:ladder2/widgets/date_text.dart';
@@ -12,13 +13,16 @@ import 'package:ladder2/widgets/date_text.dart';
 /// The events page.
 class LadderEventsPage extends ConsumerWidget {
   /// Create an instance.
-  const LadderEventsPage({super.key});
+  const LadderEventsPage({required this.division, super.key});
+
+  /// The division to show events for.
+  final PlayerDivision division;
 
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
     final db = ref.watch(databaseProvider);
-    final value = ref.watch(ladderEventsProvider);
+    final value = ref.watch(ladderEventsProvider(division));
     return AsyncValueBuilder(
       value: value,
       builder: (events) => ListView.builder(

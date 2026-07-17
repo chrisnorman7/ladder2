@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/providers.dart';
 import 'package:ladder2/widgets/async_value_builder.dart';
 import 'package:ladder2/widgets/points_text.dart';
@@ -13,16 +14,16 @@ import 'package:ladder2/widgets/points_text.dart';
 /// The players tab.
 class PlayersPage extends ConsumerWidget {
   /// Create an instance.
-  const PlayersPage({this.playerOrder = PlayerOrder.name, super.key});
+  const PlayersPage({required this.division, super.key});
 
-  /// The ordering scheme to use.
-  final PlayerOrder playerOrder;
+  /// The division to show players for.
+  final PlayerDivision division;
 
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
     final db = ref.watch(databaseProvider);
-    final value = ref.watch(playersProvider(playerOrder));
+    final value = ref.watch(playersProvider(division));
     return AsyncValueBuilder(
       value: value,
       builder: (players) => ListView.builder(

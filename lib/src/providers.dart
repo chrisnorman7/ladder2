@@ -23,7 +23,9 @@ final playersProvider = FutureProvider.family<List<Player>, PlayerOrder>((
   final db = ref.watch(databaseProvider);
   switch (playerOrder) {
     case PlayerOrder.name:
-      return db.managers.players.orderBy((o) => o.name.asc()).get();
+      return db.managers.players
+          .orderBy((o) => o.deactivated.asc() & o.name.asc())
+          .get();
     case PlayerOrder.points:
       final players = await db.managers.players.get();
       final points = [

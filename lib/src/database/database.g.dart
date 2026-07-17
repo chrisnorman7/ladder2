@@ -30,8 +30,19 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _deactivatedMeta = const VerificationMeta(
+    'deactivated',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<DateTime> deactivated = GeneratedColumn<DateTime>(
+    'deactivated',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, deactivated];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -55,6 +66,15 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('deactivated')) {
+      context.handle(
+        _deactivatedMeta,
+        deactivated.isAcceptableOrUnknown(
+          data['deactivated']!,
+          _deactivatedMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -72,6 +92,10 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      deactivated: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deactivated'],
+      ),
     );
   }
 
@@ -87,17 +111,32 @@ class Player extends DataClass implements Insertable<Player> {
 
   /// The name of the player.
   final String name;
-  const Player({required this.id, required this.name});
+
+  /// When the player was deactivated.
+  ///
+  /// If [deactivated] is not `null`, then this player will not show up in the
+  /// players list.
+  final DateTime? deactivated;
+  const Player({required this.id, required this.name, this.deactivated});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || deactivated != null) {
+      map['deactivated'] = Variable<DateTime>(deactivated);
+    }
     return map;
   }
 
   PlayersCompanion toCompanion(bool nullToAbsent) {
-    return PlayersCompanion(id: Value(id), name: Value(name));
+    return PlayersCompanion(
+      id: Value(id),
+      name: Value(name),
+      deactivated: deactivated == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deactivated),
+    );
   }
 
   factory Player.fromJson(
@@ -108,6 +147,7 @@ class Player extends DataClass implements Insertable<Player> {
     return Player(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      deactivated: serializer.fromJson<DateTime?>(json['deactivated']),
     );
   }
   @override
@@ -116,15 +156,26 @@ class Player extends DataClass implements Insertable<Player> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'deactivated': serializer.toJson<DateTime?>(deactivated),
     };
   }
 
-  Player copyWith({int? id, String? name}) =>
-      Player(id: id ?? this.id, name: name ?? this.name);
+  Player copyWith({
+    int? id,
+    String? name,
+    Value<DateTime?> deactivated = const Value.absent(),
+  }) => Player(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    deactivated: deactivated.present ? deactivated.value : this.deactivated,
+  );
   Player copyWithCompanion(PlayersCompanion data) {
     return Player(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      deactivated: data.deactivated.present
+          ? data.deactivated.value
+          : this.deactivated,
     );
   }
 
@@ -132,42 +183,59 @@ class Player extends DataClass implements Insertable<Player> {
   String toString() {
     return (StringBuffer('Player(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('deactivated: $deactivated')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, name, deactivated);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Player && other.id == this.id && other.name == this.name);
+      (other is Player &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.deactivated == this.deactivated);
 }
 
 class PlayersCompanion extends UpdateCompanion<Player> {
   final Value<int> id;
   final Value<String> name;
+  final Value<DateTime?> deactivated;
   const PlayersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.deactivated = const Value.absent(),
   });
   PlayersCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.deactivated = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Player> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<DateTime>? deactivated,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (deactivated != null) 'deactivated': deactivated,
     });
   }
 
-  PlayersCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return PlayersCompanion(id: id ?? this.id, name: name ?? this.name);
+  PlayersCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime?>? deactivated,
+  }) {
+    return PlayersCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      deactivated: deactivated ?? this.deactivated,
+    );
   }
 
   @override
@@ -179,6 +247,9 @@ class PlayersCompanion extends UpdateCompanion<Player> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (deactivated.present) {
+      map['deactivated'] = Variable<DateTime>(deactivated.value);
+    }
     return map;
   }
 
@@ -186,7 +257,8 @@ class PlayersCompanion extends UpdateCompanion<Player> {
   String toString() {
     return (StringBuffer('PlayersCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('deactivated: $deactivated')
           ..write(')'))
         .toString();
   }
@@ -979,6 +1051,15 @@ class $PointsResetsTable extends PointsResets
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _whenMeta = const VerificationMeta('when');
   @override
   late final GeneratedColumn<DateTime> when = GeneratedColumn<DateTime>(
@@ -990,7 +1071,7 @@ class $PointsResetsTable extends PointsResets
     defaultValue: currentDateAndTime,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, when];
+  List<GeneratedColumn> get $columns => [id, name, when];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1005,6 +1086,12 @@ class $PointsResetsTable extends PointsResets
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     }
     if (data.containsKey('when')) {
       context.handle(
@@ -1025,6 +1112,10 @@ class $PointsResetsTable extends PointsResets
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      ),
       when: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}when'],
@@ -1042,19 +1133,31 @@ class PointsReset extends DataClass implements Insertable<PointsReset> {
   /// The primary key.
   final int id;
 
+  /// The name of this reset.
+  ///
+  /// If [name] is `null`, then [when] will be used.
+  final String? name;
+
   /// The date when the reset was enacted.
   final DateTime when;
-  const PointsReset({required this.id, required this.when});
+  const PointsReset({required this.id, this.name, required this.when});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
     map['when'] = Variable<DateTime>(when);
     return map;
   }
 
   PointsResetsCompanion toCompanion(bool nullToAbsent) {
-    return PointsResetsCompanion(id: Value(id), when: Value(when));
+    return PointsResetsCompanion(
+      id: Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      when: Value(when),
+    );
   }
 
   factory PointsReset.fromJson(
@@ -1064,6 +1167,7 @@ class PointsReset extends DataClass implements Insertable<PointsReset> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PointsReset(
       id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String?>(json['name']),
       when: serializer.fromJson<DateTime>(json['when']),
     );
   }
@@ -1072,15 +1176,24 @@ class PointsReset extends DataClass implements Insertable<PointsReset> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String?>(name),
       'when': serializer.toJson<DateTime>(when),
     };
   }
 
-  PointsReset copyWith({int? id, DateTime? when}) =>
-      PointsReset(id: id ?? this.id, when: when ?? this.when);
+  PointsReset copyWith({
+    int? id,
+    Value<String?> name = const Value.absent(),
+    DateTime? when,
+  }) => PointsReset(
+    id: id ?? this.id,
+    name: name.present ? name.value : this.name,
+    when: when ?? this.when,
+  );
   PointsReset copyWithCompanion(PointsResetsCompanion data) {
     return PointsReset(
       id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
       when: data.when.present ? data.when.value : this.when,
     );
   }
@@ -1089,42 +1202,59 @@ class PointsReset extends DataClass implements Insertable<PointsReset> {
   String toString() {
     return (StringBuffer('PointsReset(')
           ..write('id: $id, ')
+          ..write('name: $name, ')
           ..write('when: $when')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, when);
+  int get hashCode => Object.hash(id, name, when);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is PointsReset && other.id == this.id && other.when == this.when);
+      (other is PointsReset &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.when == this.when);
 }
 
 class PointsResetsCompanion extends UpdateCompanion<PointsReset> {
   final Value<int> id;
+  final Value<String?> name;
   final Value<DateTime> when;
   const PointsResetsCompanion({
     this.id = const Value.absent(),
+    this.name = const Value.absent(),
     this.when = const Value.absent(),
   });
   PointsResetsCompanion.insert({
     this.id = const Value.absent(),
+    this.name = const Value.absent(),
     this.when = const Value.absent(),
   });
   static Insertable<PointsReset> custom({
     Expression<int>? id,
+    Expression<String>? name,
     Expression<DateTime>? when,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (name != null) 'name': name,
       if (when != null) 'when': when,
     });
   }
 
-  PointsResetsCompanion copyWith({Value<int>? id, Value<DateTime>? when}) {
-    return PointsResetsCompanion(id: id ?? this.id, when: when ?? this.when);
+  PointsResetsCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? name,
+    Value<DateTime>? when,
+  }) {
+    return PointsResetsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      when: when ?? this.when,
+    );
   }
 
   @override
@@ -1132,6 +1262,9 @@ class PointsResetsCompanion extends UpdateCompanion<PointsReset> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
     }
     if (when.present) {
       map['when'] = Variable<DateTime>(when.value);
@@ -1143,6 +1276,7 @@ class PointsResetsCompanion extends UpdateCompanion<PointsReset> {
   String toString() {
     return (StringBuffer('PointsResetsCompanion(')
           ..write('id: $id, ')
+          ..write('name: $name, ')
           ..write('when: $when')
           ..write(')'))
         .toString();
@@ -1202,9 +1336,17 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 }
 
 typedef $$PlayersTableCreateCompanionBuilder =
-    PlayersCompanion Function({Value<int> id, required String name});
+    PlayersCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<DateTime?> deactivated,
+    });
 typedef $$PlayersTableUpdateCompanionBuilder =
-    PlayersCompanion Function({Value<int> id, Value<String> name});
+    PlayersCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<DateTime?> deactivated,
+    });
 
 class $$PlayersTableFilterComposer
     extends Composer<_$AppDatabase, $PlayersTable> {
@@ -1222,6 +1364,11 @@ class $$PlayersTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deactivated => $composableBuilder(
+    column: $table.deactivated,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1244,6 +1391,11 @@ class $$PlayersTableOrderingComposer
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get deactivated => $composableBuilder(
+    column: $table.deactivated,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PlayersTableAnnotationComposer
@@ -1260,6 +1412,11 @@ class $$PlayersTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deactivated => $composableBuilder(
+    column: $table.deactivated,
+    builder: (column) => column,
+  );
 }
 
 class $$PlayersTableTableManager
@@ -1292,10 +1449,22 @@ class $$PlayersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
-              }) => PlayersCompanion(id: id, name: name),
+                Value<DateTime?> deactivated = const Value.absent(),
+              }) => PlayersCompanion(
+                id: id,
+                name: name,
+                deactivated: deactivated,
+              ),
           createCompanionCallback:
-              ({Value<int> id = const Value.absent(), required String name}) =>
-                  PlayersCompanion.insert(id: id, name: name),
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<DateTime?> deactivated = const Value.absent(),
+              }) => PlayersCompanion.insert(
+                id: id,
+                name: name,
+                deactivated: deactivated,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
@@ -2396,9 +2565,17 @@ typedef $$GameSetsTableProcessedTableManager =
       PrefetchHooks Function({bool gameId})
     >;
 typedef $$PointsResetsTableCreateCompanionBuilder =
-    PointsResetsCompanion Function({Value<int> id, Value<DateTime> when});
+    PointsResetsCompanion Function({
+      Value<int> id,
+      Value<String?> name,
+      Value<DateTime> when,
+    });
 typedef $$PointsResetsTableUpdateCompanionBuilder =
-    PointsResetsCompanion Function({Value<int> id, Value<DateTime> when});
+    PointsResetsCompanion Function({
+      Value<int> id,
+      Value<String?> name,
+      Value<DateTime> when,
+    });
 
 class $$PointsResetsTableFilterComposer
     extends Composer<_$AppDatabase, $PointsResetsTable> {
@@ -2411,6 +2588,11 @@ class $$PointsResetsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2434,6 +2616,11 @@ class $$PointsResetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get when => $composableBuilder(
     column: $table.when,
     builder: (column) => ColumnOrderings(column),
@@ -2451,6 +2638,9 @@ class $$PointsResetsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<DateTime> get when =>
       $composableBuilder(column: $table.when, builder: (column) => column);
@@ -2488,13 +2678,16 @@ class $$PointsResetsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> name = const Value.absent(),
                 Value<DateTime> when = const Value.absent(),
-              }) => PointsResetsCompanion(id: id, when: when),
+              }) => PointsResetsCompanion(id: id, name: name, when: when),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> name = const Value.absent(),
                 Value<DateTime> when = const Value.absent(),
-              }) => PointsResetsCompanion.insert(id: id, when: when),
+              }) =>
+                  PointsResetsCompanion.insert(id: id, name: name, when: when),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),

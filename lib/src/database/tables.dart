@@ -20,6 +20,12 @@ mixin IdMixin on Table {
 class Players extends Table with IdMixin {
   /// The name of the player.
   TextColumn get name => text()();
+
+  /// When the player was deactivated.
+  ///
+  /// If [deactivated] is not `null`, then this player will not show up in the
+  /// players list.
+  DateTimeColumn get deactivated => dateTime().nullable()();
 }
 
 /// The events table.
@@ -59,6 +65,11 @@ class GameSets extends Table with IdMixin {
 
 /// The points resets table.
 class PointsResets extends Table with IdMixin {
+  /// The name of this reset.
+  ///
+  /// If [name] is `null`, then [when] will be used.
+  TextColumn get name => text().nullable()();
+
   /// The date when the reset was enacted.
   DateTimeColumn get when => dateTime().withDefault(currentDateAndTime)();
 }

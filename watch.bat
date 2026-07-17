@@ -1,2 +1,2 @@
 @echo off
-title build_runner & dart run build_runner watch -d
+title build_runner & dart run build_runner watch

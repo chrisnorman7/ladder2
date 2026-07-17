@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ladder2/screens/event_games_screen.dart';
 import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/providers.dart';
 import 'package:ladder2/widgets/async_value_builder.dart';
@@ -60,7 +61,9 @@ class LadderEventsPage extends ConsumerWidget {
                 name: 'Delete',
                 activator: deleteShortcut,
                 invoke: () async {
-                  final games = await ref.read(gamesProvider(event).future);
+                  final games = await ref.read(
+                    eventGamesProvider(event).future,
+                  );
                   if (games.isEmpty) {
                     await query.delete();
                     ref.invalidate(ladderEventsProvider);
@@ -86,7 +89,9 @@ class LadderEventsPage extends ConsumerWidget {
             ],
             autofocus: index == 0,
             title: DateText(date: event.when),
-            onTap: () {},
+            onTap: () => context.pushWidgetBuilder(
+              (_) => EventGamesScreen(event: event),
+            ),
           );
         },
         itemCount: events.length,

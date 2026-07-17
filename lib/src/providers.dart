@@ -56,6 +56,7 @@ class GamePlayers {
     required this.game,
     required this.player1,
     required this.player2,
+    required this.sets,
   });
 
   /// The game to use.
@@ -66,37 +67,49 @@ class GamePlayers {
 
   /// The [game]'s player 2.
   final Player player2;
+
+  /// The sets for this game.
+  final List<GameSet> sets;
 }
 
 /// Provide all games for the given event.
-final gamesProvider = FutureProvider.family<List<GamePlayers>, LadderEvent>((
-  ref,
-  final event,
-) async {
-  final db = ref.watch(databaseProvider);
-  final rows = await db.managers.eventGames
-      .filter((f) => f.eventId.id.equals(event.id))
-      .orderBy((o) => o.id.asc())
-      .get();
-  final games = <GamePlayers>[];
-  final players = <int, Player>{};
-  for (final game in rows) {
-    final player1 =
-        players[game.player1Id] ??
-        await db.managers.players
-            .filter((f) => f.id.equals(game.player1Id))
-            .getSingle();
-    players[player1.id] = player1;
-    final player2 =
-        players[game.player2Id] ??
-        await db.managers.players
-            .filter((f) => f.id.equals(game.player2Id))
-            .getSingle();
-    players[player2.id] = player2;
-    games.add(GamePlayers(game: game, player1: player1, player2: player2));
-  }
-  return games;
-});
+final eventGamesProvider =
+    FutureProvider.family<List<GamePlayers>, LadderEvent>((
+      ref,
+      final event,
+    ) async {
+      final db = ref.watch(databaseProvider);
+      final rows = await db.managers.eventGames
+          .filter((f) => f.eventId.id.equals(event.id))
+          .orderBy((o) => o.id.asc())
+          .get();
+      final games = <GamePlayers>[];
+      final players = <int, Player>{};
+      for (final game in rows) {
+        final player1 =
+            players[game.player1Id] ??
+            await db.managers.players
+                .filter((f) => f.id.equals(game.player1Id))
+                .getSingle();
+        players[player1.id] = player1;
+        final player2 =
+            players[game.player2Id] ??
+            await db.managers.players
+                .filter((f) => f.id.equals(game.player2Id))
+                .getSingle();
+        players[player2.id] = player2;
+        final sets = await ref.watch(gameSetsProvider(game).future);
+        games.add(
+          GamePlayers(
+            game: game,
+            player1: player1,
+            player2: player2,
+            sets: sets,
+          ),
+        );
+      }
+      return games;
+    });
 
 /// Provide all the games the given player has played.
 final playerGamesProvider = FutureProvider.family<List<EventGame>, Player>((

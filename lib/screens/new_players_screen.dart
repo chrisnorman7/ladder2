@@ -43,23 +43,28 @@ class NewPlayersScreenState extends ConsumerState<NewPlayersScreen> {
 
   /// Build a widget.
   @override
-  Widget build(BuildContext context) => CallbackShortcuts(
-    bindings: {CrossPlatformSingleActivator(LogicalKeyboardKey.keyS): _save},
-    child: SimpleScaffold(
-      title: 'Create Players',
-      body: TextField(
-        autofocus: true,
-        controller: _controller,
-        decoration: const InputDecoration(
-          helperText: 'Enter player names on separate lines',
-          hintText:
-              // ignore: lines_longer_than_80_chars
-              'Each name will be made into a new player in the current division',
-          labelText: 'Player names',
+  Widget build(BuildContext context) => Cancel(
+    child: CallbackShortcuts(
+      bindings: {CrossPlatformSingleActivator(LogicalKeyboardKey.keyS): _save},
+      child: SimpleScaffold(
+        title: 'Create Players',
+        body: TextField(
+          autofocus: true,
+          controller: _controller,
+          keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.newline,
+          decoration: const InputDecoration(
+            helperText: 'Enter player names on separate lines',
+            hintText:
+                // ignore: lines_longer_than_80_chars
+                'Each name will be made into a new player in the current division',
+            labelText: 'Player names',
+          ),
+          minLines: 1,
+          maxLines: null,
         ),
-        minLines: 1,
+        floatingActionButton: SaveButton(onPressed: _save),
       ),
-      floatingActionButton: SaveButton(onPressed: _save),
     ),
   );
 

@@ -19,32 +19,33 @@ class MainScreen extends ConsumerWidget {
 
   /// Build the widget.
   @override
-  Widget build(
-    final BuildContext context,
-    final WidgetRef ref,
-  ) => TabbedScaffold(
-    tabs: [
-      TabbedScaffoldTab(
-        title: 'Players',
-        icon: const Text('All the players in the club'),
-        child: CommonShortcuts(
-          newCallback: () => _newPlayer(ref),
-          child: PlayersPage(division: division),
+  Widget build(final BuildContext context, final WidgetRef ref) => Cancel(
+    child: TabbedScaffold(
+      tabs: [
+        TabbedScaffoldTab(
+          title: 'Players',
+          icon: const Text('All the players in the club'),
+          child: CommonShortcuts(
+            newCallback: () => _newPlayer(ref),
+            child: PlayersPage(division: division),
+          ),
+          floatingActionButton: NewButton(onPressed: () => _newPlayer(ref)),
         ),
-        floatingActionButton: NewButton(onPressed: () => _newPlayer(ref)),
-      ),
-      TabbedScaffoldTab(
-        title: 'Events',
-        icon: const Text(
-          'The events which have happened in the club in the current period',
+        TabbedScaffoldTab(
+          title: 'Events',
+          icon: const Text(
+            'The events which have happened in the club in the current period',
+          ),
+          child: CommonShortcuts(
+            newCallback: () => _newLadderEvent(ref),
+            child: LadderEventsPage(division: division),
+          ),
+          floatingActionButton: NewButton(
+            onPressed: () => _newLadderEvent(ref),
+          ),
         ),
-        child: CommonShortcuts(
-          newCallback: () => _newLadderEvent(ref),
-          child: LadderEventsPage(division: division),
-        ),
-        floatingActionButton: NewButton(onPressed: () => _newLadderEvent(ref)),
-      ),
-    ],
+      ],
+    ),
   );
 
   /// Create a new player.

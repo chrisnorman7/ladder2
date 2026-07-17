@@ -46,6 +46,9 @@ class PlayerDivisionsScreen extends ConsumerWidget {
                           await query.update((o) => o(name: Value(name)));
                           ref.invalidate(playerDivisionsProvider);
                         },
+                        labelText: 'Division name',
+                        text: division.name,
+                        title: 'Rename Division'
                       ),
                     ),
                   ),
@@ -62,8 +65,7 @@ class PlayerDivisionsScreen extends ConsumerWidget {
                         );
                         if (events.isEmpty) {
                           await query.delete();
-                          print('Goodbye ${division.name}.');
-                          ref.invalidate(ladderEventsProvider);
+                          ref.invalidate(playerDivisionsProvider);
                         } else {
                           if (context.mounted) {
                             await context.showMessage(

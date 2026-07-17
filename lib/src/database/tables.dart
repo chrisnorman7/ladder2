@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:ladder2/src/database/database.dart' show EventGame, GameSet;
 import 'package:ladder2/src/database/database.dart';
 
 /// Which player won a [GameSet].
@@ -42,10 +41,12 @@ class EventGames extends Table with IdMixin {
       integer().references(LadderEvents, #id, onDelete: KeyAction.cascade)();
 
   /// The ID of player 1.
+  @ReferenceName('player1Games')
   IntColumn get player1Id =>
       integer().references(Players, #id, onDelete: KeyAction.cascade)();
 
   /// The ID of player 2.
+  @ReferenceName('player2Games')
   IntColumn get player2Id =>
       integer().references(Players, #id, onDelete: KeyAction.cascade)();
 }

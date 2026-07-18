@@ -20,6 +20,7 @@ List<RoundRobinGame<T>> roundRobinGames<T>(
     }
   }
   final games = [unorderedGames.removeAt(0)];
+  var popLast = true;
   while (unorderedGames.isNotEmpty) {
     final lastGame = games.last;
     RoundRobinGame<T>? game;
@@ -32,9 +33,11 @@ List<RoundRobinGame<T>> roundRobinGames<T>(
       }
     }
     if (game == null) {
-      if (games.length.isOdd || !jumpy) {
+      if (popLast || !jumpy) {
+        popLast = false;
         game = unorderedGames.removeLast();
       } else {
+        popLast = true;
         game = unorderedGames.removeAt(0);
       }
     }

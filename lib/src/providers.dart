@@ -27,27 +27,6 @@ final playersProvider = FutureProvider.family<List<Player>, PlayerDivision>((
   return players;
 });
 
-/// Provides all point resets for the given division.
-final pointsResetsProvider =
-    FutureProvider.family<List<PointsReset>, PlayerDivision>((
-      final ref,
-      final division,
-    ) async {
-      final db = ref.watch(databaseProvider);
-      return db.managers.pointsResets.orderBy((o) => o.when.desc()).get();
-    });
-
-/// Provides the most recent points reset.
-final pointsResetProvider = FutureProvider.family<PointsReset?, PlayerDivision>(
-  (final ref, final division) async {
-    final db = ref.watch(databaseProvider);
-    return db.managers.pointsResets
-        .filter((f) => f.divisionId.id.equals(division.id))
-        .orderBy((o) => o.when.desc())
-        .getSingleOrNull();
-  },
-);
-
 /// All the events which have happened.
 final ladderEventsProvider =
     FutureProvider.family<List<LadderEvent>, PlayerDivision>((
@@ -55,16 +34,13 @@ final ladderEventsProvider =
       division,
     ) async {
       final db = ref.watch(databaseProvider);
-      final reset = await ref.watch(pointsResetProvider(division).future);
       return db.managers.ladderEvents
           .filter((f) {
             final divisionIdMatchExpression = f.divisionId.id.equals(
               division.id,
             );
-            if (reset == null) {
-              return divisionIdMatchExpression;
-            }
-            return divisionIdMatchExpression & f.when.isAfterOrOn(reset.when);
+            return divisionIdMatchExpression &
+                f.when.isAfterOrOn(division.lastPointsReset);
           })
           .orderBy((o) => o.when.desc())
           .get();
@@ -118,16 +94,17 @@ final playerGamesProvider = FutureProvider.family<List<EventGame>, Player>((
   final player,
 ) async {
   final db = ref.watch(databaseProvider);
-  final reset = await ref.watch(
-    pointsResetProvider(PlayerDivision(id: player.divisionId, name: '')).future,
-  );
-  var query = db.managers.eventGames.filter(
-    (f) => f.player1Id.id.equals(player.id) | f.player2Id.id.equals(player.id),
-  );
-  if (reset != null) {
-    query = query.filter((f) => f.eventId.when.isAfterOrOn(reset.when));
-  }
-  return query.get();
+  final division = await db.managers.playerDivisions
+      .filter((f) => f.id.equals(player.divisionId))
+      .getSingle();
+  return db.managers.eventGames
+      .filter(
+        (f) =>
+            (f.player1Id.id.equals(player.id) |
+                f.player2Id.id.equals(player.id)) &
+            f.eventId.when.isAfterOrOn(division.lastPointsReset),
+      )
+      .get();
 });
 
 /// Provide the sets for the given game.
@@ -146,16 +123,14 @@ final playerPointsProvider = FutureProvider.family<int, Player>((
 ) async {
   final playerId = player.id;
   final db = ref.watch(databaseProvider);
-  final reset = await ref.watch(
-    pointsResetProvider(PlayerDivision(id: player.divisionId, name: '')).future,
-  );
+  final division = await db.managers.playerDivisions
+      .filter((f) => f.id.equals(player.divisionId))
+      .getSingle();
   final games = await db.managers.eventGames.filter((f) {
     final playerIdMatchExpression =
         f.player1Id.id.equals(playerId) | f.player2Id.id.equals(playerId);
-    if (reset == null) {
-      return playerIdMatchExpression;
-    }
-    return playerIdMatchExpression & f.eventId.when.isAfterOrOn(reset.when);
+    return playerIdMatchExpression &
+        f.eventId.when.isAfterOrOn(division.lastPointsReset);
   }).get();
   var points = 0;
   for (final game in games) {

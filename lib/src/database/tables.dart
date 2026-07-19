@@ -23,7 +23,10 @@ mixin NameMixin on Table {
 }
 
 /// A division which will hold 0 or more players.
-class PlayerDivisions extends Table with IdMixin, NameMixin {}
+class PlayerDivisions extends Table with IdMixin, NameMixin {
+  /// The time when this division's points were last reset.
+  DateTimeColumn get lastPointsReset => dateTime().withDefault(currentDate)();
+}
 
 /// The players table.
 class Players extends Table with IdMixin, NameMixin {
@@ -82,19 +85,4 @@ class GameSets extends Table with IdMixin {
   /// `player1Id` from the [EventGame]. Of it is [WinningPlayer.player2], then
   /// `player2Id`.
   IntColumn get winningPlayer => intEnum<WinningPlayer>()();
-}
-
-/// The points resets table.
-class PointsResets extends Table with IdMixin {
-  /// The ID of the division this reset is for.
-  IntColumn get divisionId =>
-      integer().references(PlayerDivisions, #id, onDelete: KeyAction.cascade)();
-
-  /// The name of this reset.
-  ///
-  /// If [name] is `null`, then [when] will be used.
-  TextColumn get name => text().nullable()();
-
-  /// The date when the reset was enacted.
-  DateTimeColumn get when => dateTime().withDefault(currentDateAndTime)();
 }

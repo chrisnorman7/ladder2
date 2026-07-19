@@ -31,8 +31,21 @@ class $PlayerDivisionsTable extends PlayerDivisions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _lastPointsResetMeta = const VerificationMeta(
+    'lastPointsReset',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<DateTime> lastPointsReset =
+      GeneratedColumn<DateTime>(
+        'last_points_reset',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        defaultValue: currentDate,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, lastPointsReset];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -56,6 +69,15 @@ class $PlayerDivisionsTable extends PlayerDivisions
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('last_points_reset')) {
+      context.handle(
+        _lastPointsResetMeta,
+        lastPointsReset.isAcceptableOrUnknown(
+          data['last_points_reset']!,
+          _lastPointsResetMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -73,6 +95,10 @@ class $PlayerDivisionsTable extends PlayerDivisions
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      lastPointsReset: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_points_reset'],
+      )!,
     );
   }
 
@@ -88,17 +114,29 @@ class PlayerDivision extends DataClass implements Insertable<PlayerDivision> {
 
   /// The name of this row.
   final String name;
-  const PlayerDivision({required this.id, required this.name});
+
+  /// The time when this division's points were last reset.
+  final DateTime lastPointsReset;
+  const PlayerDivision({
+    required this.id,
+    required this.name,
+    required this.lastPointsReset,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['last_points_reset'] = Variable<DateTime>(lastPointsReset);
     return map;
   }
 
   PlayerDivisionsCompanion toCompanion(bool nullToAbsent) {
-    return PlayerDivisionsCompanion(id: Value(id), name: Value(name));
+    return PlayerDivisionsCompanion(
+      id: Value(id),
+      name: Value(name),
+      lastPointsReset: Value(lastPointsReset),
+    );
   }
 
   factory PlayerDivision.fromJson(
@@ -109,6 +147,7 @@ class PlayerDivision extends DataClass implements Insertable<PlayerDivision> {
     return PlayerDivision(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      lastPointsReset: serializer.fromJson<DateTime>(json['lastPointsReset']),
     );
   }
   @override
@@ -117,15 +156,23 @@ class PlayerDivision extends DataClass implements Insertable<PlayerDivision> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'lastPointsReset': serializer.toJson<DateTime>(lastPointsReset),
     };
   }
 
-  PlayerDivision copyWith({int? id, String? name}) =>
-      PlayerDivision(id: id ?? this.id, name: name ?? this.name);
+  PlayerDivision copyWith({int? id, String? name, DateTime? lastPointsReset}) =>
+      PlayerDivision(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        lastPointsReset: lastPointsReset ?? this.lastPointsReset,
+      );
   PlayerDivision copyWithCompanion(PlayerDivisionsCompanion data) {
     return PlayerDivision(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      lastPointsReset: data.lastPointsReset.present
+          ? data.lastPointsReset.value
+          : this.lastPointsReset,
     );
   }
 
@@ -133,44 +180,59 @@ class PlayerDivision extends DataClass implements Insertable<PlayerDivision> {
   String toString() {
     return (StringBuffer('PlayerDivision(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('lastPointsReset: $lastPointsReset')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, name, lastPointsReset);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is PlayerDivision &&
           other.id == this.id &&
-          other.name == this.name);
+          other.name == this.name &&
+          other.lastPointsReset == this.lastPointsReset);
 }
 
 class PlayerDivisionsCompanion extends UpdateCompanion<PlayerDivision> {
   final Value<int> id;
   final Value<String> name;
+  final Value<DateTime> lastPointsReset;
   const PlayerDivisionsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.lastPointsReset = const Value.absent(),
   });
   PlayerDivisionsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.lastPointsReset = const Value.absent(),
   }) : name = Value(name);
   static Insertable<PlayerDivision> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<DateTime>? lastPointsReset,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (lastPointsReset != null) 'last_points_reset': lastPointsReset,
     });
   }
 
-  PlayerDivisionsCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return PlayerDivisionsCompanion(id: id ?? this.id, name: name ?? this.name);
+  PlayerDivisionsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime>? lastPointsReset,
+  }) {
+    return PlayerDivisionsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      lastPointsReset: lastPointsReset ?? this.lastPointsReset,
+    );
   }
 
   @override
@@ -182,6 +244,9 @@ class PlayerDivisionsCompanion extends UpdateCompanion<PlayerDivision> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (lastPointsReset.present) {
+      map['last_points_reset'] = Variable<DateTime>(lastPointsReset.value);
+    }
     return map;
   }
 
@@ -189,7 +254,8 @@ class PlayerDivisionsCompanion extends UpdateCompanion<PlayerDivision> {
   String toString() {
     return (StringBuffer('PlayerDivisionsCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('lastPointsReset: $lastPointsReset')
           ..write(')'))
         .toString();
   }
@@ -1399,313 +1465,6 @@ class GameSetsCompanion extends UpdateCompanion<GameSet> {
   }
 }
 
-class $PointsResetsTable extends PointsResets
-    with TableInfo<$PointsResetsTable, PointsReset> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $PointsResetsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _divisionIdMeta = const VerificationMeta(
-    'divisionId',
-  );
-  @override
-  late final GeneratedColumn<int> divisionId = GeneratedColumn<int>(
-    'division_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES player_divisions (id) ON DELETE CASCADE',
-    ),
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _whenMeta = const VerificationMeta('when');
-  @override
-  late final GeneratedColumn<DateTime> when = GeneratedColumn<DateTime>(
-    'when',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, divisionId, name, when];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'points_resets';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<PointsReset> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('division_id')) {
-      context.handle(
-        _divisionIdMeta,
-        divisionId.isAcceptableOrUnknown(data['division_id']!, _divisionIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_divisionIdMeta);
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    }
-    if (data.containsKey('when')) {
-      context.handle(
-        _whenMeta,
-        when.isAcceptableOrUnknown(data['when']!, _whenMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  PointsReset map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return PointsReset(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      divisionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}division_id'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      ),
-      when: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}when'],
-      )!,
-    );
-  }
-
-  @override
-  $PointsResetsTable createAlias(String alias) {
-    return $PointsResetsTable(attachedDatabase, alias);
-  }
-}
-
-class PointsReset extends DataClass implements Insertable<PointsReset> {
-  /// The primary key.
-  final int id;
-
-  /// The ID of the division this reset is for.
-  final int divisionId;
-
-  /// The name of this reset.
-  ///
-  /// If [name] is `null`, then [when] will be used.
-  final String? name;
-
-  /// The date when the reset was enacted.
-  final DateTime when;
-  const PointsReset({
-    required this.id,
-    required this.divisionId,
-    this.name,
-    required this.when,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['division_id'] = Variable<int>(divisionId);
-    if (!nullToAbsent || name != null) {
-      map['name'] = Variable<String>(name);
-    }
-    map['when'] = Variable<DateTime>(when);
-    return map;
-  }
-
-  PointsResetsCompanion toCompanion(bool nullToAbsent) {
-    return PointsResetsCompanion(
-      id: Value(id),
-      divisionId: Value(divisionId),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      when: Value(when),
-    );
-  }
-
-  factory PointsReset.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return PointsReset(
-      id: serializer.fromJson<int>(json['id']),
-      divisionId: serializer.fromJson<int>(json['divisionId']),
-      name: serializer.fromJson<String?>(json['name']),
-      when: serializer.fromJson<DateTime>(json['when']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'divisionId': serializer.toJson<int>(divisionId),
-      'name': serializer.toJson<String?>(name),
-      'when': serializer.toJson<DateTime>(when),
-    };
-  }
-
-  PointsReset copyWith({
-    int? id,
-    int? divisionId,
-    Value<String?> name = const Value.absent(),
-    DateTime? when,
-  }) => PointsReset(
-    id: id ?? this.id,
-    divisionId: divisionId ?? this.divisionId,
-    name: name.present ? name.value : this.name,
-    when: when ?? this.when,
-  );
-  PointsReset copyWithCompanion(PointsResetsCompanion data) {
-    return PointsReset(
-      id: data.id.present ? data.id.value : this.id,
-      divisionId: data.divisionId.present
-          ? data.divisionId.value
-          : this.divisionId,
-      name: data.name.present ? data.name.value : this.name,
-      when: data.when.present ? data.when.value : this.when,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('PointsReset(')
-          ..write('id: $id, ')
-          ..write('divisionId: $divisionId, ')
-          ..write('name: $name, ')
-          ..write('when: $when')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, divisionId, name, when);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is PointsReset &&
-          other.id == this.id &&
-          other.divisionId == this.divisionId &&
-          other.name == this.name &&
-          other.when == this.when);
-}
-
-class PointsResetsCompanion extends UpdateCompanion<PointsReset> {
-  final Value<int> id;
-  final Value<int> divisionId;
-  final Value<String?> name;
-  final Value<DateTime> when;
-  const PointsResetsCompanion({
-    this.id = const Value.absent(),
-    this.divisionId = const Value.absent(),
-    this.name = const Value.absent(),
-    this.when = const Value.absent(),
-  });
-  PointsResetsCompanion.insert({
-    this.id = const Value.absent(),
-    required int divisionId,
-    this.name = const Value.absent(),
-    this.when = const Value.absent(),
-  }) : divisionId = Value(divisionId);
-  static Insertable<PointsReset> custom({
-    Expression<int>? id,
-    Expression<int>? divisionId,
-    Expression<String>? name,
-    Expression<DateTime>? when,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (divisionId != null) 'division_id': divisionId,
-      if (name != null) 'name': name,
-      if (when != null) 'when': when,
-    });
-  }
-
-  PointsResetsCompanion copyWith({
-    Value<int>? id,
-    Value<int>? divisionId,
-    Value<String?>? name,
-    Value<DateTime>? when,
-  }) {
-    return PointsResetsCompanion(
-      id: id ?? this.id,
-      divisionId: divisionId ?? this.divisionId,
-      name: name ?? this.name,
-      when: when ?? this.when,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (divisionId.present) {
-      map['division_id'] = Variable<int>(divisionId.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (when.present) {
-      map['when'] = Variable<DateTime>(when.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('PointsResetsCompanion(')
-          ..write('id: $id, ')
-          ..write('divisionId: $divisionId, ')
-          ..write('name: $name, ')
-          ..write('when: $when')
-          ..write(')'))
-        .toString();
-  }
-}
-
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1716,7 +1475,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LadderEventsTable ladderEvents = $LadderEventsTable(this);
   late final $EventGamesTable eventGames = $EventGamesTable(this);
   late final $GameSetsTable gameSets = $GameSetsTable(this);
-  late final $PointsResetsTable pointsResets = $PointsResetsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1727,7 +1485,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ladderEvents,
     eventGames,
     gameSets,
-    pointsResets,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -1773,20 +1530,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('game_sets', kind: UpdateKind.delete)],
     ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'player_divisions',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('points_resets', kind: UpdateKind.delete)],
-    ),
   ]);
 }
 
 typedef $$PlayerDivisionsTableCreateCompanionBuilder =
-    PlayerDivisionsCompanion Function({Value<int> id, required String name});
+    PlayerDivisionsCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<DateTime> lastPointsReset,
+    });
 typedef $$PlayerDivisionsTableUpdateCompanionBuilder =
-    PlayerDivisionsCompanion Function({Value<int> id, Value<String> name});
+    PlayerDivisionsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<DateTime> lastPointsReset,
+    });
 
 final class $$PlayerDivisionsTableReferences
     extends
@@ -1833,24 +1591,6 @@ final class $$PlayerDivisionsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
-
-  static MultiTypedResultKey<$PointsResetsTable, List<PointsReset>>
-  _pointsResetsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.pointsResets,
-    aliasName: 'player_divisions__id__points_resets__division_id',
-  );
-
-  $$PointsResetsTableProcessedTableManager get pointsResetsRefs {
-    final manager = $$PointsResetsTableTableManager(
-      $_db,
-      $_db.pointsResets,
-    ).filter((f) => f.divisionId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_pointsResetsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
 }
 
 class $$PlayerDivisionsTableFilterComposer
@@ -1869,6 +1609,11 @@ class $$PlayerDivisionsTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastPointsReset => $composableBuilder(
+    column: $table.lastPointsReset,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1921,31 +1666,6 @@ class $$PlayerDivisionsTableFilterComposer
     );
     return f(composer);
   }
-
-  Expression<bool> pointsResetsRefs(
-    Expression<bool> Function($$PointsResetsTableFilterComposer f) f,
-  ) {
-    final $$PointsResetsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.pointsResets,
-      getReferencedColumn: (t) => t.divisionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PointsResetsTableFilterComposer(
-            $db: $db,
-            $table: $db.pointsResets,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$PlayerDivisionsTableOrderingComposer
@@ -1966,6 +1686,11 @@ class $$PlayerDivisionsTableOrderingComposer
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get lastPointsReset => $composableBuilder(
+    column: $table.lastPointsReset,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PlayerDivisionsTableAnnotationComposer
@@ -1982,6 +1707,11 @@ class $$PlayerDivisionsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastPointsReset => $composableBuilder(
+    column: $table.lastPointsReset,
+    builder: (column) => column,
+  );
 
   Expression<T> playersRefs<T extends Object>(
     Expression<T> Function($$PlayersTableAnnotationComposer a) f,
@@ -2032,31 +1762,6 @@ class $$PlayerDivisionsTableAnnotationComposer
     );
     return f(composer);
   }
-
-  Expression<T> pointsResetsRefs<T extends Object>(
-    Expression<T> Function($$PointsResetsTableAnnotationComposer a) f,
-  ) {
-    final $$PointsResetsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.pointsResets,
-      getReferencedColumn: (t) => t.divisionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PointsResetsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.pointsResets,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$PlayerDivisionsTableTableManager
@@ -2072,11 +1777,7 @@ class $$PlayerDivisionsTableTableManager
           $$PlayerDivisionsTableUpdateCompanionBuilder,
           (PlayerDivision, $$PlayerDivisionsTableReferences),
           PlayerDivision,
-          PrefetchHooks Function({
-            bool playersRefs,
-            bool ladderEventsRefs,
-            bool pointsResetsRefs,
-          })
+          PrefetchHooks Function({bool playersRefs, bool ladderEventsRefs})
         > {
   $$PlayerDivisionsTableTableManager(
     _$AppDatabase db,
@@ -2095,10 +1796,22 @@ class $$PlayerDivisionsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
-              }) => PlayerDivisionsCompanion(id: id, name: name),
+                Value<DateTime> lastPointsReset = const Value.absent(),
+              }) => PlayerDivisionsCompanion(
+                id: id,
+                name: name,
+                lastPointsReset: lastPointsReset,
+              ),
           createCompanionCallback:
-              ({Value<int> id = const Value.absent(), required String name}) =>
-                  PlayerDivisionsCompanion.insert(id: id, name: name),
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<DateTime> lastPointsReset = const Value.absent(),
+              }) => PlayerDivisionsCompanion.insert(
+                id: id,
+                name: name,
+                lastPointsReset: lastPointsReset,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -2108,17 +1821,12 @@ class $$PlayerDivisionsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({
-                playersRefs = false,
-                ladderEventsRefs = false,
-                pointsResetsRefs = false,
-              }) {
+              ({playersRefs = false, ladderEventsRefs = false}) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (playersRefs) db.players,
                     if (ladderEventsRefs) db.ladderEvents,
-                    if (pointsResetsRefs) db.pointsResets,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -2165,27 +1873,6 @@ class $$PlayerDivisionsTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (pointsResetsRefs)
-                        await $_getPrefetchedData<
-                          PlayerDivision,
-                          $PlayerDivisionsTable,
-                          PointsReset
-                        >(
-                          currentTable: table,
-                          referencedTable: $$PlayerDivisionsTableReferences
-                              ._pointsResetsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$PlayerDivisionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).pointsResetsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.divisionId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                     ];
                   },
                 );
@@ -2206,11 +1893,7 @@ typedef $$PlayerDivisionsTableProcessedTableManager =
       $$PlayerDivisionsTableUpdateCompanionBuilder,
       (PlayerDivision, $$PlayerDivisionsTableReferences),
       PlayerDivision,
-      PrefetchHooks Function({
-        bool playersRefs,
-        bool ladderEventsRefs,
-        bool pointsResetsRefs,
-      })
+      PrefetchHooks Function({bool playersRefs, bool ladderEventsRefs})
     >;
 typedef $$PlayersTableCreateCompanionBuilder =
     PlayersCompanion Function({
@@ -3939,299 +3622,6 @@ typedef $$GameSetsTableProcessedTableManager =
       GameSet,
       PrefetchHooks Function({bool gameId})
     >;
-typedef $$PointsResetsTableCreateCompanionBuilder =
-    PointsResetsCompanion Function({
-      Value<int> id,
-      required int divisionId,
-      Value<String?> name,
-      Value<DateTime> when,
-    });
-typedef $$PointsResetsTableUpdateCompanionBuilder =
-    PointsResetsCompanion Function({
-      Value<int> id,
-      Value<int> divisionId,
-      Value<String?> name,
-      Value<DateTime> when,
-    });
-
-final class $$PointsResetsTableReferences
-    extends BaseReferences<_$AppDatabase, $PointsResetsTable, PointsReset> {
-  $$PointsResetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $PlayerDivisionsTable _divisionIdTable(_$AppDatabase db) => db
-      .playerDivisions
-      .createAlias('points_resets__division_id__player_divisions__id');
-
-  $$PlayerDivisionsTableProcessedTableManager get divisionId {
-    final $_column = $_itemColumn<int>('division_id')!;
-
-    final manager = $$PlayerDivisionsTableTableManager(
-      $_db,
-      $_db.playerDivisions,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_divisionIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$PointsResetsTableFilterComposer
-    extends Composer<_$AppDatabase, $PointsResetsTable> {
-  $$PointsResetsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get when => $composableBuilder(
-    column: $table.when,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$PlayerDivisionsTableFilterComposer get divisionId {
-    final $$PlayerDivisionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divisionId,
-      referencedTable: $db.playerDivisions,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PlayerDivisionsTableFilterComposer(
-            $db: $db,
-            $table: $db.playerDivisions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$PointsResetsTableOrderingComposer
-    extends Composer<_$AppDatabase, $PointsResetsTable> {
-  $$PointsResetsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get when => $composableBuilder(
-    column: $table.when,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$PlayerDivisionsTableOrderingComposer get divisionId {
-    final $$PlayerDivisionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divisionId,
-      referencedTable: $db.playerDivisions,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PlayerDivisionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.playerDivisions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$PointsResetsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $PointsResetsTable> {
-  $$PointsResetsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get when =>
-      $composableBuilder(column: $table.when, builder: (column) => column);
-
-  $$PlayerDivisionsTableAnnotationComposer get divisionId {
-    final $$PlayerDivisionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divisionId,
-      referencedTable: $db.playerDivisions,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PlayerDivisionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.playerDivisions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$PointsResetsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $PointsResetsTable,
-          PointsReset,
-          $$PointsResetsTableFilterComposer,
-          $$PointsResetsTableOrderingComposer,
-          $$PointsResetsTableAnnotationComposer,
-          $$PointsResetsTableCreateCompanionBuilder,
-          $$PointsResetsTableUpdateCompanionBuilder,
-          (PointsReset, $$PointsResetsTableReferences),
-          PointsReset,
-          PrefetchHooks Function({bool divisionId})
-        > {
-  $$PointsResetsTableTableManager(_$AppDatabase db, $PointsResetsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$PointsResetsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$PointsResetsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$PointsResetsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<int> divisionId = const Value.absent(),
-                Value<String?> name = const Value.absent(),
-                Value<DateTime> when = const Value.absent(),
-              }) => PointsResetsCompanion(
-                id: id,
-                divisionId: divisionId,
-                name: name,
-                when: when,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required int divisionId,
-                Value<String?> name = const Value.absent(),
-                Value<DateTime> when = const Value.absent(),
-              }) => PointsResetsCompanion.insert(
-                id: id,
-                divisionId: divisionId,
-                name: name,
-                when: when,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$PointsResetsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({divisionId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (divisionId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.divisionId,
-                                referencedTable: $$PointsResetsTableReferences
-                                    ._divisionIdTable(db),
-                                referencedColumn: $$PointsResetsTableReferences
-                                    ._divisionIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$PointsResetsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $PointsResetsTable,
-      PointsReset,
-      $$PointsResetsTableFilterComposer,
-      $$PointsResetsTableOrderingComposer,
-      $$PointsResetsTableAnnotationComposer,
-      $$PointsResetsTableCreateCompanionBuilder,
-      $$PointsResetsTableUpdateCompanionBuilder,
-      (PointsReset, $$PointsResetsTableReferences),
-      PointsReset,
-      PrefetchHooks Function({bool divisionId})
-    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4246,6 +3636,4 @@ class $AppDatabaseManager {
       $$EventGamesTableTableManager(_db, _db.eventGames);
   $$GameSetsTableTableManager get gameSets =>
       $$GameSetsTableTableManager(_db, _db.gameSets);
-  $$PointsResetsTableTableManager get pointsResets =>
-      $$PointsResetsTableTableManager(_db, _db.pointsResets);
 }

@@ -10,14 +10,7 @@ part 'database.g.dart';
 
 /// The ladder database class.
 @DriftDatabase(
-  tables: [
-    Players,
-    LadderEvents,
-    EventGames,
-    GameSets,
-    PointsResets,
-    PlayerDivisions,
-  ],
+  tables: [Players, LadderEvents, EventGames, GameSets, PlayerDivisions],
 )
 class AppDatabase extends _$AppDatabase {
   /// Create an instance.

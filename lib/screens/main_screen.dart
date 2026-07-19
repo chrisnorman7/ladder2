@@ -8,7 +8,6 @@ import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/providers.dart';
 import 'package:ladder2/widgets/ladder_events_page.dart';
 import 'package:ladder2/widgets/players_page.dart';
-import 'package:ladder2/widgets/points_reset_page.dart';
 
 /// The main screen of the application.
 class MainScreen extends ConsumerWidget {
@@ -49,18 +48,6 @@ class MainScreen extends ConsumerWidget {
             tooltip: 'New Event',
           ),
         ),
-        TabbedScaffoldTab(
-          title: 'Point Resets',
-          icon: const Text('The times when player points have been reset'),
-          child: CommonShortcuts(
-            child: PointsResetPage(division: division),
-            newCallback: () => _newPointsReset(ref),
-          ),
-          floatingActionButton: NewButton(
-            onPressed: () => _newPointsReset(ref),
-            tooltip: 'New Point Reset',
-          ),
-        ),
       ],
     ),
   );
@@ -75,12 +62,5 @@ class MainScreen extends ConsumerWidget {
     final db = ref.read(databaseProvider);
     await db.managers.ladderEvents.create((o) => o(divisionId: division.id));
     ref.invalidate(ladderEventsProvider);
-  }
-
-  /// Create a new points reset.
-  Future<void> _newPointsReset(final WidgetRef ref) async {
-    final db = ref.read(databaseProvider);
-    await db.managers.pointsResets.create((o) => o(divisionId: division.id));
-    ref.invalidate(pointsResetsProvider(division));
   }
 }

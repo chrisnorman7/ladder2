@@ -1,4 +1,5 @@
 import 'package:backstreets_widgets/extensions.dart';
+import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/shortcuts.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:drift/drift.dart';
@@ -27,13 +28,34 @@ class LadderEventsPage extends ConsumerWidget {
     return AsyncValueBuilder(
       value: value,
       builder: (events) => ListView.builder(
-        itemBuilder: (_, final index) {
+        itemBuilder: (context, final index) {
           final event = events[index];
           final query = db.managers.ladderEvents.filter(
             (f) => f.id.equals(event.id),
           );
+          final name = event.name;
           return PerformableActionsListTile(
             actions: [
+              PerformableAction(
+                name: 'Rename',
+                activator: CrossPlatformSingleActivator(
+                  LogicalKeyboardKey.keyR,
+                ),
+                invoke: () => context.pushWidgetBuilder(
+                  (builderContext) => GetText(
+                    onDone: (name) async {
+                      builderContext.pop();
+                      await query.update(
+                        (o) => o(name: Value(name.isEmpty ? null : name)),
+                      );
+                      ref.invalidate(ladderEventsProvider(division));
+                    },
+                    labelText: 'Event name',
+                    text: name ?? '',
+                    title: 'Rename Event',
+                  ),
+                ),
+              ),
               PerformableAction(
                 name: 'Move Back',
                 activator: moveUpShortcut,
@@ -88,7 +110,8 @@ class LadderEventsPage extends ConsumerWidget {
               ),
             ],
             autofocus: index == 0,
-            title: DateText(date: event.when),
+            title: name == null ? DateText(date: event.when) : Text(name),
+            subtitle: name == null ? null : DateText(date: event.when),
             onTap: () => context.pushWidgetBuilder(
               (_) => EventGamesScreen(event: event),
             ),

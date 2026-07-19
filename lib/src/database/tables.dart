@@ -16,17 +16,17 @@ mixin IdMixin on Table {
   IntColumn get id => integer().autoIncrement()();
 }
 
-/// A division which will hold 0 or more players.
-class PlayerDivisions extends Table with IdMixin {
-  /// The name of this division.
+/// Add a [name] column.
+mixin NameMixin on Table {
+  /// The name of this row.
   TextColumn get name => text()();
 }
 
-/// The players table.
-class Players extends Table with IdMixin {
-  /// The name of the player.
-  TextColumn get name => text()();
+/// A division which will hold 0 or more players.
+class PlayerDivisions extends Table with IdMixin, NameMixin {}
 
+/// The players table.
+class Players extends Table with IdMixin, NameMixin {
   /// The ID of the division this player belongs to.
   IntColumn get divisionId =>
       integer().references(PlayerDivisions, #id, onDelete: KeyAction.cascade)();
@@ -40,6 +40,11 @@ class Players extends Table with IdMixin {
 
 /// The events table.
 class LadderEvents extends Table with IdMixin {
+  /// The name of this event.
+  ///
+  /// If [name] is `null`, then no name will be shown.
+  TextColumn get name => text().nullable()();
+
   /// The date and time of the event.
   DateTimeColumn get when => dateTime().withDefault(currentDateAndTime)();
 

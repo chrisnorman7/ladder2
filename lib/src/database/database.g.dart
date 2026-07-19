@@ -86,7 +86,7 @@ class PlayerDivision extends DataClass implements Insertable<PlayerDivision> {
   /// The primary key.
   final int id;
 
-  /// The name of this division.
+  /// The name of this row.
   final String name;
   const PlayerDivision({required this.id, required this.name});
   @override
@@ -327,7 +327,7 @@ class Player extends DataClass implements Insertable<Player> {
   /// The primary key.
   final int id;
 
-  /// The name of the player.
+  /// The name of this row.
   final String name;
 
   /// The ID of the division this player belongs to.
@@ -532,6 +532,15 @@ class $LadderEventsTable extends LadderEvents
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _whenMeta = const VerificationMeta('when');
   @override
   late final GeneratedColumn<DateTime> when = GeneratedColumn<DateTime>(
@@ -557,7 +566,7 @@ class $LadderEventsTable extends LadderEvents
     ),
   );
   @override
-  List<GeneratedColumn> get $columns => [id, when, divisionId];
+  List<GeneratedColumn> get $columns => [id, name, when, divisionId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -572,6 +581,12 @@ class $LadderEventsTable extends LadderEvents
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     }
     if (data.containsKey('when')) {
       context.handle(
@@ -600,6 +615,10 @@ class $LadderEventsTable extends LadderEvents
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      ),
       when: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}when'],
@@ -621,6 +640,11 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
   /// The primary key.
   final int id;
 
+  /// The name of this event.
+  ///
+  /// If [name] is `null`, then no name will be shown.
+  final String? name;
+
   /// The date and time of the event.
   final DateTime when;
 
@@ -628,6 +652,7 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
   final int divisionId;
   const LadderEvent({
     required this.id,
+    this.name,
     required this.when,
     required this.divisionId,
   });
@@ -635,6 +660,9 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
     map['when'] = Variable<DateTime>(when);
     map['division_id'] = Variable<int>(divisionId);
     return map;
@@ -643,6 +671,7 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
   LadderEventsCompanion toCompanion(bool nullToAbsent) {
     return LadderEventsCompanion(
       id: Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       when: Value(when),
       divisionId: Value(divisionId),
     );
@@ -655,6 +684,7 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LadderEvent(
       id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String?>(json['name']),
       when: serializer.fromJson<DateTime>(json['when']),
       divisionId: serializer.fromJson<int>(json['divisionId']),
     );
@@ -664,20 +694,27 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String?>(name),
       'when': serializer.toJson<DateTime>(when),
       'divisionId': serializer.toJson<int>(divisionId),
     };
   }
 
-  LadderEvent copyWith({int? id, DateTime? when, int? divisionId}) =>
-      LadderEvent(
-        id: id ?? this.id,
-        when: when ?? this.when,
-        divisionId: divisionId ?? this.divisionId,
-      );
+  LadderEvent copyWith({
+    int? id,
+    Value<String?> name = const Value.absent(),
+    DateTime? when,
+    int? divisionId,
+  }) => LadderEvent(
+    id: id ?? this.id,
+    name: name.present ? name.value : this.name,
+    when: when ?? this.when,
+    divisionId: divisionId ?? this.divisionId,
+  );
   LadderEvent copyWithCompanion(LadderEventsCompanion data) {
     return LadderEvent(
       id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
       when: data.when.present ? data.when.value : this.when,
       divisionId: data.divisionId.present
           ? data.divisionId.value
@@ -689,6 +726,7 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
   String toString() {
     return (StringBuffer('LadderEvent(')
           ..write('id: $id, ')
+          ..write('name: $name, ')
           ..write('when: $when, ')
           ..write('divisionId: $divisionId')
           ..write(')'))
@@ -696,37 +734,43 @@ class LadderEvent extends DataClass implements Insertable<LadderEvent> {
   }
 
   @override
-  int get hashCode => Object.hash(id, when, divisionId);
+  int get hashCode => Object.hash(id, name, when, divisionId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is LadderEvent &&
           other.id == this.id &&
+          other.name == this.name &&
           other.when == this.when &&
           other.divisionId == this.divisionId);
 }
 
 class LadderEventsCompanion extends UpdateCompanion<LadderEvent> {
   final Value<int> id;
+  final Value<String?> name;
   final Value<DateTime> when;
   final Value<int> divisionId;
   const LadderEventsCompanion({
     this.id = const Value.absent(),
+    this.name = const Value.absent(),
     this.when = const Value.absent(),
     this.divisionId = const Value.absent(),
   });
   LadderEventsCompanion.insert({
     this.id = const Value.absent(),
+    this.name = const Value.absent(),
     this.when = const Value.absent(),
     required int divisionId,
   }) : divisionId = Value(divisionId);
   static Insertable<LadderEvent> custom({
     Expression<int>? id,
+    Expression<String>? name,
     Expression<DateTime>? when,
     Expression<int>? divisionId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (name != null) 'name': name,
       if (when != null) 'when': when,
       if (divisionId != null) 'division_id': divisionId,
     });
@@ -734,11 +778,13 @@ class LadderEventsCompanion extends UpdateCompanion<LadderEvent> {
 
   LadderEventsCompanion copyWith({
     Value<int>? id,
+    Value<String?>? name,
     Value<DateTime>? when,
     Value<int>? divisionId,
   }) {
     return LadderEventsCompanion(
       id: id ?? this.id,
+      name: name ?? this.name,
       when: when ?? this.when,
       divisionId: divisionId ?? this.divisionId,
     );
@@ -749,6 +795,9 @@ class LadderEventsCompanion extends UpdateCompanion<LadderEvent> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
     }
     if (when.present) {
       map['when'] = Variable<DateTime>(when.value);
@@ -763,6 +812,7 @@ class LadderEventsCompanion extends UpdateCompanion<LadderEvent> {
   String toString() {
     return (StringBuffer('LadderEventsCompanion(')
           ..write('id: $id, ')
+          ..write('name: $name, ')
           ..write('when: $when, ')
           ..write('divisionId: $divisionId')
           ..write(')'))
@@ -2490,12 +2540,14 @@ typedef $$PlayersTableProcessedTableManager =
 typedef $$LadderEventsTableCreateCompanionBuilder =
     LadderEventsCompanion Function({
       Value<int> id,
+      Value<String?> name,
       Value<DateTime> when,
       required int divisionId,
     });
 typedef $$LadderEventsTableUpdateCompanionBuilder =
     LadderEventsCompanion Function({
       Value<int> id,
+      Value<String?> name,
       Value<DateTime> when,
       Value<int> divisionId,
     });
@@ -2552,6 +2604,11 @@ class $$LadderEventsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2623,6 +2680,11 @@ class $$LadderEventsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get when => $composableBuilder(
     column: $table.when,
     builder: (column) => ColumnOrderings(column),
@@ -2663,6 +2725,9 @@ class $$LadderEventsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<DateTime> get when =>
       $composableBuilder(column: $table.when, builder: (column) => column);
@@ -2745,20 +2810,24 @@ class $$LadderEventsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> name = const Value.absent(),
                 Value<DateTime> when = const Value.absent(),
                 Value<int> divisionId = const Value.absent(),
               }) => LadderEventsCompanion(
                 id: id,
+                name: name,
                 when: when,
                 divisionId: divisionId,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> name = const Value.absent(),
                 Value<DateTime> when = const Value.absent(),
                 required int divisionId,
               }) => LadderEventsCompanion.insert(
                 id: id,
+                name: name,
                 when: when,
                 divisionId: divisionId,
               ),

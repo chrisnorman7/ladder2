@@ -6,41 +6,40 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ladder2/screens/event_games_screen.dart';
 import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/providers.dart';
 import 'package:ladder2/widgets/async_value_builder.dart';
 import 'package:ladder2/widgets/date_text.dart';
 
-/// The events page.
-class LadderEventsPage extends ConsumerWidget {
+/// The page that shows all point resets.
+class PointsResetPage extends ConsumerWidget {
   /// Create an instance.
-  const LadderEventsPage({required this.division, super.key});
+  const PointsResetPage({required this.division, super.key});
 
-  /// The division to show events for.
+  /// The division whose resets will be shown.
   final PlayerDivision division;
 
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
     final db = ref.watch(databaseProvider);
-    final value = ref.watch(ladderEventsProvider(division));
+    final value = ref.watch(pointsResetsProvider(division));
     return AsyncValueBuilder(
       value: value,
-      builder: (events) {
-        if (events.isEmpty) {
+      builder: (resets) {
+        if (resets.isEmpty) {
           return const CenterText(
-            text: 'There are no events for this division.',
+            text: 'Points have never been reset for this division.',
             autofocus: true,
           );
         }
         return ListView.builder(
-          itemBuilder: (context, final index) {
-            final event = events[index];
-            final query = db.managers.ladderEvents.filter(
-              (f) => f.id.equals(event.id),
+          itemBuilder: (context, index) {
+            final reset = resets[index];
+            final query = db.managers.pointsResets.filter(
+              (f) => f.id.equals(reset.id),
             );
-            final name = event.name;
+            final name = reset.name;
             return PerformableActionsListTile(
               actions: [
                 PerformableAction(
@@ -55,11 +54,13 @@ class LadderEventsPage extends ConsumerWidget {
                         await query.update(
                           (o) => o(name: Value(name.isEmpty ? null : name)),
                         );
-                        ref.invalidate(ladderEventsProvider(division));
+                        ref
+                          ..invalidate(pointsResetsProvider(division))
+                          ..invalidate(pointsResetProvider(division));
                       },
-                      labelText: 'Event name',
+                      labelText: 'Reset name',
                       text: name ?? '',
-                      title: 'Rename Event',
+                      title: 'Rename Reset',
                     ),
                   ),
                 ),
@@ -70,67 +71,51 @@ class LadderEventsPage extends ConsumerWidget {
                     await query.update(
                       (o) => o(
                         when: Value(
-                          event.when.subtract(const Duration(days: 1)),
+                          reset.when.subtract(const Duration(days: 1)),
                         ),
                       ),
                     );
-                    ref.invalidate(ladderEventsProvider);
+                    await invalidateProviders(ref);
                   },
                 ),
                 PerformableAction(
-                  name: 'Move Forward',
+                  name: 'Move Forwards',
                   activator: moveDownShortcut,
                   invoke: () async {
                     await query.update(
                       (o) => o(
-                        when: Value(event.when.add(const Duration(days: 1))),
+                        when: Value(reset.when.add(const Duration(days: 1))),
                       ),
                     );
-                    ref.invalidate(ladderEventsProvider);
+                    await invalidateProviders(ref);
                   },
                 ),
                 PerformableAction(
                   name: 'Delete',
                   activator: deleteShortcut,
                   invoke: () async {
-                    final games = await ref.read(
-                      eventGamesProvider(event).future,
-                    );
-                    if (games.isEmpty) {
-                      await query.delete();
-                      ref.invalidate(ladderEventsProvider);
-                    } else {
-                      if (context.mounted) {
-                        await context.showMessage(
-                          message: 'You can only delete events with no games.',
-                        );
-                      }
-                    }
-                  },
-                ),
-                PerformableAction(
-                  name: 'Set To Today',
-                  activator: CrossPlatformSingleActivator(
-                    LogicalKeyboardKey.keyT,
-                  ),
-                  invoke: () async {
-                    await query.update((o) => o(when: Value(DateTime.now())));
-                    ref.invalidate(ladderEventsProvider);
+                    await query.delete();
+                    await invalidateProviders(ref);
                   },
                 ),
               ],
               autofocus: index == 0,
-              title: name == null ? DateText(date: event.when) : Text(name),
-              subtitle: name == null ? null : DateText(date: event.when),
-              onTap: () => context.pushWidgetBuilder(
-                (_) => EventGamesScreen(event: event),
-              ),
+              title: name == null ? DateText(date: reset.when) : Text(name),
+              subtitle: name == null ? null : DateText(date: reset.when),
+              onTap: () => dateFormatter.format(reset.when).copyToClipboard(),
             );
           },
-          itemCount: events.length,
+          itemCount: resets.length,
           shrinkWrap: true,
         );
       },
     );
+  }
+
+  /// Invalidate providers.
+  Future<void> invalidateProviders(final WidgetRef ref) async {
+    ref
+      ..invalidate(pointsResetsProvider(division))
+      ..invalidate(pointsResetProvider(division));
   }
 }

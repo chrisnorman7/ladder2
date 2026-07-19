@@ -48,7 +48,7 @@ class PlayerDivisionsScreen extends ConsumerWidget {
                         },
                         labelText: 'Division name',
                         text: division.name,
-                        title: 'Rename Division'
+                        title: 'Rename Division',
                       ),
                     ),
                   ),
@@ -98,7 +98,10 @@ class PlayerDivisionsScreen extends ConsumerWidget {
             shrinkWrap: true,
           ),
         ),
-        floatingActionButton: NewButton(onPressed: () => _newDivision(ref)),
+        floatingActionButton: NewButton(
+          onPressed: () => _newDivision(ref),
+          tooltip: 'New Division',
+        ),
       ),
     );
   }

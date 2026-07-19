@@ -86,6 +86,10 @@ class GameSets extends Table with IdMixin {
 
 /// The points resets table.
 class PointsResets extends Table with IdMixin {
+  /// The ID of the division this reset is for.
+  IntColumn get divisionId =>
+      integer().references(PlayerDivisions, #id, onDelete: KeyAction.cascade)();
+
   /// The name of this reset.
   ///
   /// If [name] is `null`, then [when] will be used.

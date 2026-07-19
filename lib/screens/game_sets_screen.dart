@@ -52,12 +52,13 @@ class GameSetsScreen extends ConsumerWidget {
                       await db.managers.gameSets.create(
                         (o) => o(
                           gameId: game.id,
-                          winningPlayer: WinningPlayer.player1,
+                          winningPlayer: WinningPlayer.values.first,
                         ),
                       );
                     } else {
                       final set = sets[index];
-                      if (set.winningPlayer == WinningPlayer.values.last) {
+                      if (index == (sets.length - 1) &&
+                          set.winningPlayer == WinningPlayer.values.last) {
                         await db.managers.gameSets
                             .filter((f) => f.id.equals(set.id))
                             .delete();
@@ -82,6 +83,9 @@ class GameSetsScreen extends ConsumerWidget {
                       ..invalidate(gameSetsProvider(game))
                       ..invalidate(eventGamesProvider(gameContext.event))
                       ..invalidate(eventGameProvider(game));
+                    for (final player in [player1, player2]) {
+                      ref.invalidate(playerPointsProvider(player));
+                    }
                   },
                 );
               },

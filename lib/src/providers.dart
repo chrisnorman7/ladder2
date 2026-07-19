@@ -3,35 +3,50 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/database/tables.dart';
 import 'package:ladder2/src/game_context.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'providers.g.dart';
 
 /// Provide the database.
-@riverpod
-AppDatabase database(final Ref ref) => AppDatabase();
+final databaseProvider = Provider<AppDatabase>((final ref) => AppDatabase());
 
 /// Provide all players in the database.
 final playersProvider = FutureProvider.family<List<Player>, PlayerDivision>((
   final ref,
   final division,
-) {
+) async {
   final db = ref.watch(databaseProvider);
-  return db.managers.players
+  final players = await db.managers.players
       .filter((f) => f.divisionId.id.equals(division.id))
       .orderBy((o) => o.name.asc())
       .get();
+  if (players.isEmpty) {
+    return [
+      await db.managers.players.createReturning(
+        (o) => o(divisionId: division.id, name: 'First Player'),
+      ),
+    ];
+  }
+  return players;
 });
 
+/// Provides all point resets for the given division.
+final pointsResetsProvider =
+    FutureProvider.family<List<PointsReset>, PlayerDivision>((
+      final ref,
+      final division,
+    ) async {
+      final db = ref.watch(databaseProvider);
+      return db.managers.pointsResets.orderBy((o) => o.when.desc()).get();
+    });
+
 /// Provides the most recent points reset.
-@riverpod
-Future<DateTime?> pointsResetWhen(final Ref ref) {
-  final db = ref.watch(databaseProvider);
-  return db.managers.pointsResets
-      .orderBy((o) => o.when.desc())
-      .getSingleOrNull()
-      .then((reset) => reset?.when);
-}
+final pointsResetProvider = FutureProvider.family<PointsReset?, PlayerDivision>(
+  (final ref, final division) async {
+    final db = ref.watch(databaseProvider);
+    return db.managers.pointsResets
+        .filter((f) => f.divisionId.id.equals(division.id))
+        .orderBy((o) => o.when.desc())
+        .getSingleOrNull();
+  },
+);
 
 /// All the events which have happened.
 final ladderEventsProvider =
@@ -40,14 +55,19 @@ final ladderEventsProvider =
       division,
     ) async {
       final db = ref.watch(databaseProvider);
-      final resetWhen = await ref.watch(pointsResetWhenProvider.future);
-      var query = db.managers.ladderEvents
-          .filter((f) => f.divisionId.id.equals(division.id))
-          .orderBy((o) => o.when.desc());
-      if (resetWhen != null) {
-        query = query.filter((f) => f.when.isAfterOrOn(resetWhen));
-      }
-      return query.get();
+      final reset = await ref.watch(pointsResetProvider(division).future);
+      return db.managers.ladderEvents
+          .filter((f) {
+            final divisionIdMatchExpression = f.divisionId.id.equals(
+              division.id,
+            );
+            if (reset == null) {
+              return divisionIdMatchExpression;
+            }
+            return divisionIdMatchExpression & f.when.isAfterOrOn(reset.when);
+          })
+          .orderBy((o) => o.when.desc())
+          .get();
     });
 
 /// Provide all games for the given event.
@@ -98,12 +118,14 @@ final playerGamesProvider = FutureProvider.family<List<EventGame>, Player>((
   final player,
 ) async {
   final db = ref.watch(databaseProvider);
-  final resetWhen = await ref.watch(pointsResetWhenProvider.future);
+  final reset = await ref.watch(
+    pointsResetProvider(PlayerDivision(id: player.divisionId, name: '')).future,
+  );
   var query = db.managers.eventGames.filter(
     (f) => f.player1Id.id.equals(player.id) | f.player2Id.id.equals(player.id),
   );
-  if (resetWhen != null) {
-    query = query.filter((f) => f.eventId.when.isAfterOrOn(resetWhen));
+  if (reset != null) {
+    query = query.filter((f) => f.eventId.when.isAfterOrOn(reset.when));
   }
   return query.get();
 });
@@ -118,17 +140,23 @@ final gameSetsProvider = FutureProvider.family<List<GameSet>, EventGame>((
 });
 
 /// Provide the points for the given player.
-@riverpod
-Future<int> playerPoints(final Ref ref, final int playerId) async {
+final playerPointsProvider = FutureProvider.family<int, Player>((
+  final ref,
+  final player,
+) async {
+  final playerId = player.id;
   final db = ref.watch(databaseProvider);
-  final resetWhen = await ref.watch(pointsResetWhenProvider.future);
-  var query = db.managers.eventGames.filter(
-    (f) => f.player1Id.id.equals(playerId) | f.player2Id.id.equals(playerId),
+  final reset = await ref.watch(
+    pointsResetProvider(PlayerDivision(id: player.divisionId, name: '')).future,
   );
-  if (resetWhen != null) {
-    query = query.filter((f) => f.eventId.when.isAfterOrOn(resetWhen));
-  }
-  final games = await query.get();
+  final games = await db.managers.eventGames.filter((f) {
+    final playerIdMatchExpression =
+        f.player1Id.id.equals(playerId) | f.player2Id.id.equals(playerId);
+    if (reset == null) {
+      return playerIdMatchExpression;
+    }
+    return playerIdMatchExpression & f.eventId.when.isAfterOrOn(reset.when);
+  }).get();
   var points = 0;
   for (final game in games) {
     final sets = await db.managers.gameSets
@@ -144,10 +172,22 @@ Future<int> playerPoints(final Ref ref, final int playerId) async {
     }
   }
   return points;
-}
+});
 
 /// Provide all divisions.
-final playerDivisionsProvider = FutureProvider<List<PlayerDivision>>((ref) {
+final playerDivisionsProvider = FutureProvider<List<PlayerDivision>>((
+  ref,
+) async {
   final db = ref.watch(databaseProvider);
-  return db.managers.playerDivisions.orderBy((o) => o.name.asc()).get();
+  final divisions = await db.managers.playerDivisions
+      .orderBy((o) => o.name.asc())
+      .get();
+  if (divisions.isEmpty) {
+    return [
+      await db.managers.playerDivisions.createReturning(
+        (o) => o(name: 'Default Division'),
+      ),
+    ];
+  }
+  return divisions;
 });

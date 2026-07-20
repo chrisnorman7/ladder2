@@ -31,11 +31,14 @@ class DateTimeActions {
       final duration = Duration(days: days.abs());
       final DateTime d;
       if (days == 0) {
-        d = DateTime.now();
+        final now = DateTime.now();
+        d = DateTime(now.year, now.month, now.day);
       } else if (days.isNegative) {
-        d = dateTime.subtract(duration);
+        final adjusted = dateTime.subtract(duration);
+        d = DateTime(adjusted.year, adjusted.month, adjusted.day);
       } else {
-        d = dateTime.add(duration);
+        final adjusted = dateTime.add(duration);
+        d = DateTime(adjusted.year, adjusted.month, adjusted.day);
       }
       return PerformableAction(
         name: name,

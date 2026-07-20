@@ -34,16 +34,13 @@ final ladderEventsProvider =
       division,
     ) async {
       final db = ref.watch(databaseProvider);
-      return db.managers.ladderEvents
-          .filter((f) {
-            final divisionIdMatchExpression = f.divisionId.id.equals(
-              division.id,
-            );
-            return divisionIdMatchExpression &
-                f.when.isAfterOrOn(division.lastPointsReset);
-          })
-          .orderBy((o) => o.when.desc())
+      final events = await db.managers.ladderEvents
+          .filter((f) => f.divisionId.id.equals(division.id))
+          .orderBy((o) => o.when.asc())
           .get();
+      return events
+          .where((event) => division.lastPointsReset.isBefore(event.when))
+          .toList();
     });
 
 /// Provide all games for the given event.
@@ -97,14 +94,15 @@ final playerGamesProvider = FutureProvider.family<List<EventGame>, Player>((
   final division = await db.managers.playerDivisions
       .filter((f) => f.id.equals(player.divisionId))
       .getSingle();
-  return db.managers.eventGames
+  final events = await ref.watch(ladderEventsProvider(division).future);
+  final eventIds = events.map((event) => event.id);
+  final games = await db.managers.eventGames
       .filter(
         (f) =>
-            (f.player1Id.id.equals(player.id) |
-                f.player2Id.id.equals(player.id)) &
-            f.eventId.when.isAfterOrOn(division.lastPointsReset),
+            f.player1Id.id.equals(player.id) | f.player2Id.id.equals(player.id),
       )
       .get();
+  return games.where((game) => eventIds.contains(game.eventId)).toList();
 });
 
 /// Provide the sets for the given game.
@@ -123,16 +121,9 @@ final playerPointsProvider = FutureProvider.family<int, Player>((
 ) async {
   final playerId = player.id;
   final db = ref.watch(databaseProvider);
-  final division = await db.managers.playerDivisions
-      .filter((f) => f.id.equals(player.divisionId))
-      .getSingle();
-  final games = await db.managers.eventGames.filter((f) {
-    final playerIdMatchExpression =
-        f.player1Id.id.equals(playerId) | f.player2Id.id.equals(playerId);
-    return playerIdMatchExpression &
-        f.eventId.when.isAfterOrOn(division.lastPointsReset);
-  }).get();
+  final games = await ref.watch(playerGamesProvider(player).future);
   var points = 0;
+  print('Games for $player:');
   for (final game in games) {
     final sets = await db.managers.gameSets
         .filter((f) => f.gameId.id.equals(game.id))

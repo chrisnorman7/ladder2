@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ladder2/screens/new_players_screen.dart';
 import 'package:ladder2/src/database/database.dart';
+import 'package:ladder2/src/extensions.dart';
 import 'package:ladder2/src/providers.dart';
 import 'package:ladder2/widgets/ladder_events_page.dart';
 import 'package:ladder2/widgets/players_page.dart';
@@ -60,7 +61,19 @@ class MainScreen extends ConsumerWidget {
   /// Create a new event.
   Future<void> _newLadderEvent(final WidgetRef ref) async {
     final db = ref.read(databaseProvider);
-    await db.managers.ladderEvents.create((o) => o(divisionId: division.id));
+    final event = await db.managers.ladderEvents.createReturning(
+      (o) => o(divisionId: division.id),
+    );
+    try {
+      await event.populateGames(ref);
+      // ignore: avoid_catching_errors
+    } on UnsupportedError catch (e) {
+      if (ref.context.mounted) {
+        await ref.context.showMessage(
+          message: e.message ?? 'An unknown error occurred.',
+        );
+      }
+    }
     ref.invalidate(ladderEventsProvider);
   }
 }

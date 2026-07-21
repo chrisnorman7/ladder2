@@ -7,8 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ladder2/screens/game_sets_screen.dart';
 import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/database/tables.dart';
+import 'package:ladder2/src/extensions.dart';
 import 'package:ladder2/src/providers.dart';
-import 'package:ladder2/src/round_robin/round_robin_games.dart';
 import 'package:ladder2/widgets/async_value_builder.dart';
 import 'package:ladder2/widgets/date_text.dart';
 
@@ -123,29 +123,15 @@ class EventGamesScreen extends ConsumerWidget {
 
   /// Populate the games.
   Future<void> _populateGames(final WidgetRef ref) async {
-    final db = ref.read(databaseProvider);
-    final division = await db.managers.playerDivisions
-        .filter((f) => f.id.equals(event.divisionId))
-        .getSingle();
-    final players = await ref.read(playersProvider(division).future);
-    if (players.length < 2) {
+    try {
+      await event.populateGames(ref);
+      // ignore: avoid_catching_errors
+    } on UnsupportedError catch (e) {
       if (ref.context.mounted) {
         await ref.context.showMessage(
-          message: 'You cannot create games with less than 2 players.',
+          message: e.message ?? 'An unknown error occurred.',
         );
       }
-      return;
     }
-    final games = roundRobinGames(players.map((player) => player.id).toList());
-    for (final game in games) {
-      await db.managers.eventGames.create(
-        (o) => o(
-          eventId: event.id,
-          player1Id: game.player1,
-          player2Id: game.player2,
-        ),
-      );
-    }
-    ref.invalidate(eventGamesProvider(event));
   }
 }

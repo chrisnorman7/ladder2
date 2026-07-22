@@ -45,6 +45,7 @@ class PlayerDivisionsScreen extends ConsumerWidget {
                     ..invalidate(playersProvider(division))
                     ..invalidate(ladderEventsProvider(division));
                 },
+                max: DateTime.now(),
               );
               return PerformableActionsListTile(
                 actions: [

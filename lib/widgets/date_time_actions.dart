@@ -7,13 +7,24 @@ import 'package:flutter/services.dart';
 /// Provide a set of [actions] which can be performed on [DateTime] objects.
 class DateTimeActions {
   /// Create an instance.
-  const DateTimeActions({required this.dateTime, required this.onChanged});
+  const DateTimeActions({
+    required this.dateTime,
+    required this.onChanged,
+    this.min,
+    this.max,
+  });
 
   /// The date time to start with.
   final DateTime dateTime;
 
   /// The function to call when [dateTime] has been updated.
   final FutureOr<void> Function(DateTime dateTime) onChanged;
+
+  /// The minimum date time.
+  final DateTime? min;
+
+  /// The maximum date time.
+  final DateTime? max;
 
   /// Get the actions to use.
   List<PerformableAction> get actions {
@@ -26,7 +37,7 @@ class DateTimeActions {
       ('Forward 1 Year', LogicalKeyboardKey.end, 365),
       ('Move To Today', LogicalKeyboardKey.keyT, 0),
     };
-    return keys.map((row) {
+    final possibleActions = keys.map((row) {
       final (name, key, days) = row;
       final duration = Duration(days: days.abs());
       final DateTime d;
@@ -40,11 +51,18 @@ class DateTimeActions {
         final adjusted = dateTime.add(duration);
         d = DateTime(adjusted.year, adjusted.month, adjusted.day);
       }
-      return PerformableAction(
-        name: name,
-        activator: CrossPlatformSingleActivator(key),
-        invoke: () => onChanged(d),
-      );
-    }).toList();
+      final minDateTime = min;
+      final maxDateTime = max;
+      if ((minDateTime == null || d.isAfter(minDateTime)) &&
+          (maxDateTime == null || d.isBefore(maxDateTime))) {
+        return PerformableAction(
+          name: name,
+          activator: CrossPlatformSingleActivator(key),
+          invoke: () => onChanged(d),
+        );
+      }
+      return null;
+    });
+    return possibleActions.whereType<PerformableAction>().toList();
   }
 }

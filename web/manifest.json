@@ -1,11 +1,11 @@
 {
-    "name": "ladder2",
-    "short_name": "ladder2",
+    "name": "Ladder 2",
+    "short_name": "Ladder2",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "The v2 ladder app.",
+    "description": "An app for keeping track of scores in showdown events.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

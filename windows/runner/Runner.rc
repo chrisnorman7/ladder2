@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "site.backstreets" "\0"
-            VALUE "FileDescription", "ladder2" "\0"
+            VALUE "CompanyName", "backstreets.site" "\0"
+            VALUE "FileDescription", "Ladder 2" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "ladder2" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 site.backstreets. All rights reserved." "\0"
+            VALUE "InternalName", "Ladder 2" "\0"
+            VALUE "LegalCopyright", "Copyright © 2026 Unlicense" "\0"
             VALUE "OriginalFilename", "ladder2.exe" "\0"
-            VALUE "ProductName", "ladder2" "\0"
+            VALUE "ProductName", "Ladder 2" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

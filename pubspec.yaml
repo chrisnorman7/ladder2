@@ -24,7 +24,39 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
+  package_rename: ^1.10.1
   riverpod_lint: ^3.1.4
 
 flutter:
   uses-material-design: true
+package_rename_config:
+  android:
+    app_name: "Ladder 2" # Display name
+    package_name: "site.backstreets.ladder2" # Package name
+    lang: "kotlin" # Optional: "kotlin" (default) or "java"
+
+  ios:
+    app_name: "Ladder 2" # Display name
+    bundle_name: "Ladder 2" # Bundle name
+    package_name: "site.backstreets.ladder2" # Product Bundle Identifier
+
+  linux:
+    app_name: "Ladder 2" # Window title
+    package_name: "site.backstreets.ladder2" # Application ID
+    exe_name: "ladder2" # Executable name (binary)
+
+  macos:
+    app_name: "Ladder 2" # Product name
+    package_name: "site.backstreets.ladder2" # Product Bundle Identifier
+    copyright_notice: "Copyright © 2026 Unlicense" # Copyright notice
+
+  web:
+    app_name: "Ladder 2" # App title & PWA name
+    short_app_name: "Ladder2" # PWA short name (defaults to app_name)
+    description: "An app for keeping track of scores in showdown events." # Web app description
+
+  windows:
+    app_name: "Ladder 2" # Window title & Software name
+    organization: "backstreets.site" # Organization/Company name
+    copyright_notice: "Copyright © 2026 Unlicense" # Legal copyright
+    exe_name: "ladder2" # Executable name (binary)

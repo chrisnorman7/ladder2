@@ -47,6 +47,7 @@ class LadderEventsPage extends ConsumerWidget {
                 await query.update((o) => o(when: Value(dateTime)));
                 ref.invalidate(ladderEventsProvider(division));
               },
+              min: division.lastPointsReset,
             );
             final name = event.name;
             return PerformableActionsListTile(

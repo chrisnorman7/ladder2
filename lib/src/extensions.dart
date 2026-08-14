@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/providers.dart';
@@ -21,9 +22,20 @@ extension LadderEventX on LadderEvent {
     }
     final games = roundRobinGames(players.map((player) => player.id).toList());
     for (final game in games) {
-      await db.managers.eventGames.create(
-        (o) => o(eventId: id, player1Id: game.player1, player2Id: game.player2),
-      );
+      final count = await db.managers.eventGames
+          .filter(
+            (f) =>
+                f.eventId.id.equals(id) &
+                f.player1Id.id.equals(game.player1) &
+                f.player2Id.id.equals(game.player2),
+          )
+          .count();
+      if (count == 0) {
+        await db.managers.eventGames.create(
+          (o) =>
+              o(eventId: id, player1Id: game.player1, player2Id: game.player2),
+        );
+      }
     }
     ref.invalidate(eventGamesProvider(this));
   }

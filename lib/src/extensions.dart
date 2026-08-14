@@ -16,7 +16,7 @@ extension LadderEventX on LadderEvent {
     if (players.length < 2) {
       throw UnsupportedError(
         // ignore: lines_longer_than_80_chars
-        'At least 2 players must be present in a division in order to create games.',
+        'At least 2 active players must be present in a division in order to create games.',
       );
     }
     final games = roundRobinGames(players.map((player) => player.id).toList());

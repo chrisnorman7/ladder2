@@ -1,10 +1,6 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
+import 'package:drift_flutter/drift_flutter.dart';
 import 'package:ladder2/src/database/tables.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
 
@@ -14,16 +10,16 @@ part 'database.g.dart';
 )
 class AppDatabase extends _$AppDatabase {
   /// Create an instance.
-  AppDatabase({final bool debug = false})
+  AppDatabase()
     : super(
-        debug
-            ? NativeDatabase.memory()
-            : LazyDatabase(() async {
-                final documentsPath = await getApplicationDocumentsDirectory();
-                final directoryName = path.join(documentsPath.path, 'ladder2');
-                final file = File(path.join(directoryName, 'ladder2.sqlite3'));
-                return NativeDatabase(file);
-              }),
+        driftDatabase(
+          name: 'ladder2',
+          native: const DriftNativeOptions(),
+          web: DriftWebOptions(
+            sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+            driftWorker: Uri.parse('drift_worker.dart.js'),
+          ),
+        ),
       );
 
   @override

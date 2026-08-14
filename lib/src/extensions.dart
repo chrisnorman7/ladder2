@@ -12,6 +12,7 @@ extension LadderEventX on LadderEvent {
         .filter((f) => f.id.equals(divisionId))
         .getSingle();
     final players = await ref.read(playersProvider(division).future);
+    players.removeWhere((player) => player.deactivated != null);
     if (players.length < 2) {
       throw UnsupportedError(
         // ignore: lines_longer_than_80_chars

@@ -1,12 +1,18 @@
+import 'dart:convert';
+
 import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/shortcuts.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:drift/drift.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ladder2/screens/main_screen.dart';
+import 'package:ladder2/src/json/exported_division.dart';
+import 'package:ladder2/src/json/exported_event.dart';
+import 'package:ladder2/src/json/exported_game.dart';
 import 'package:ladder2/src/providers.dart';
 import 'package:ladder2/widgets/async_value_builder.dart';
 import 'package:ladder2/widgets/date_text.dart';
@@ -68,6 +74,68 @@ class PlayerDivisionsScreen extends ConsumerWidget {
                     ),
                   ),
                   ...dateTimeActions.actions,
+                  PerformableAction(
+                    name: 'Export',
+                    activator: CrossPlatformSingleActivator(
+                      LogicalKeyboardKey.keyE,
+                      shift: true,
+                    ),
+                    invoke: () async {
+                      final players = await ref.read(
+                        playersProvider(division).future,
+                      );
+                      final ladderEvents = await ref.read(
+                        ladderEventsProvider(division).future,
+                      );
+                      final events = <ExportedEvent>[];
+                      for (final event in ladderEvents) {
+                        final games = await ref.read(
+                          eventGamesProvider(event).future,
+                        );
+                        events.add(
+                          ExportedEvent(
+                            event: event.toJson(),
+                            games: games
+                                .map(
+                                  (gameContext) => ExportedGame(
+                                    game: gameContext.game.toJson(),
+                                    sets: gameContext.sets
+                                        .map((final set) => set.toJson())
+                                        .toList(),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        );
+                      }
+                      final export = ExportedDivision(
+                        division: division.toJson(),
+                        players: players
+                            .map((player) => player.toJson())
+                            .toList(),
+                        events: events,
+                      );
+                      final json = const JsonEncoder.withIndent(
+                        '  ',
+                      ).convert(export);
+                      final fileName = 'division_${division.id}.json';
+                      final result = await getSaveLocation(
+                        suggestedName: fileName,
+                      );
+                      if (result == null) {
+                        // Operation was canceled by the user.
+                        return;
+                      }
+                      final fileData = Uint8List.fromList(json.codeUnits);
+                      const mimeType = 'application/json';
+                      final textFile = XFile.fromData(
+                        fileData,
+                        mimeType: mimeType,
+                        name: fileName,
+                      );
+                      await textFile.saveTo(result.path);
+                    },
+                  ),
                   PerformableAction(
                     name: 'Delete',
                     activator: deleteShortcut,

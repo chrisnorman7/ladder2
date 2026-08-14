@@ -31,6 +31,79 @@ class PlayerDivisionsScreen extends ConsumerWidget {
     return CommonShortcuts(
       newCallback: () => _newDivision(ref),
       child: SimpleScaffold(
+        actions: [
+          IconButton(
+            onPressed: () async {
+              final file = await openFile(
+                acceptedTypeGroups: [
+                  const XTypeGroup(
+                    extensions: ['json'],
+                    label: 'JSON files',
+                    uniformTypeIdentifiers: ['division.json'],
+                  ),
+                ],
+              );
+              if (file == null) {
+                return; // Cancelled.
+              }
+              final source = await file.readAsString();
+              final json = jsonDecode(source) as JsonMap;
+              final imported = ExportedDivision.fromJson(json);
+              final importedDivision = imported.getDivision();
+              final managers = db.managers;
+              final division = await managers.playerDivisions.createReturning(
+                (o) => o(
+                  name: importedDivision.name,
+                  lastPointsReset: Value(importedDivision.lastPointsReset),
+                ),
+              );
+              final playerIds = <int, int>{};
+              final importedPlayers = imported.getPlayers();
+              for (final importedPlayer in importedPlayers) {
+                final player = await managers.players.createReturning(
+                  (o) => o(
+                    divisionId: division.id,
+                    name: importedPlayer.name,
+                    deactivated: Value(importedPlayer.deactivated),
+                  ),
+                );
+                playerIds[importedPlayer.id] = player.id;
+              }
+              for (final eventContext in imported.events) {
+                final importedEvent = eventContext.getEvent();
+                final event = await managers.ladderEvents.createReturning(
+                  (o) => o(
+                    divisionId: division.id,
+                    name: Value(importedEvent.name),
+                    when: Value(importedEvent.when),
+                  ),
+                );
+                for (final gameContext in eventContext.getGames(
+                  importedPlayers,
+                )) {
+                  final game = await managers.eventGames.createReturning(
+                    (o) => o(
+                      eventId: event.id,
+                      player1Id: playerIds[gameContext.player1.id]!,
+                      player2Id: playerIds[gameContext.player2.id]!,
+                    ),
+                  );
+                  for (final importedSet in gameContext.sets) {
+                    await managers.gameSets.create(
+                      (o) => o(
+                        gameId: game.id,
+                        winningPlayer: importedSet.winningPlayer,
+                      ),
+                    );
+                  }
+                }
+              }
+              ref.invalidate(playerDivisionsProvider);
+            },
+            icon: const Icon(Icons.import_contacts_outlined),
+            tooltip: 'Import division from JSON',
+          ),
+        ],
         title: 'Divisions',
         body: AsyncValueBuilder(
           value: value,

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:ladder2/src/database/database.dart';
 import 'package:ladder2/src/json/exported_event.dart';
 
 part 'exported_division.g.dart';
@@ -23,8 +24,14 @@ class ExportedDivision {
   /// The division that has been exported.
   final JsonMap division;
 
+  /// Get a new division.
+  PlayerDivision getDivision() => PlayerDivision.fromJson(division);
+
   /// The players in this division.
   final List<JsonMap> players;
+
+  /// Get the players for this division.
+  List<Player> getPlayers() => players.map(Player.fromJson).toList();
 
   /// The events for this division.
   final List<ExportedEvent> events;

@@ -13,10 +13,13 @@ final playersProvider = FutureProvider.family<List<Player>, PlayerDivision>((
   final division,
 ) async {
   final db = ref.watch(databaseProvider);
-  final players = await db.managers.players
-      .filter((f) => f.divisionId.id.equals(division.id))
-      .orderBy((o) => o.name.asc())
-      .get();
+  final query = db.select(db.players)
+    ..where((t) => t.divisionId.equals(division.id))
+    ..orderBy([
+      (t) => OrderingTerm.asc(t.deactivated),
+      (t) => OrderingTerm.asc(t.name),
+    ]);
+  final players = await query.get();
   if (players.isEmpty) {
     return [
       await db.managers.players.createReturning(

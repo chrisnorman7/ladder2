@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ladder2/screens/player_divisions_screen.dart';
+import 'package:ladder2/widgets/database_manager.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -16,6 +17,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'Ladder2',
     theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-    home: const PlayerDivisionsScreen(),
+    home: const DatabaseManager(child: PlayerDivisionsScreen()),
   );
 }

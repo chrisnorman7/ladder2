@@ -76,7 +76,9 @@ class _PlayersPage extends ConsumerWidget {
               ),
               PerformableAction(
                 name: player.deactivated == null ? 'Deactivate' : 'Reactivate',
-                activator: deleteShortcut,
+                activator: CrossPlatformSingleActivator(
+                  LogicalKeyboardKey.keyD,
+                ),
                 invoke: () async {
                   if (player.deactivated == null) {
                     await query.update(
@@ -103,6 +105,27 @@ class _PlayersPage extends ConsumerWidget {
                     }
                   },
                 ),
+              PerformableAction(
+                name: 'Delete ',
+                activator: deleteShortcut,
+                invoke: () async {
+                  final games = await ref.read(
+                    playerGamesProvider(player).future,
+                  );
+                  if (games.isNotEmpty) {
+                    if (context.mounted) {
+                      await context.showMessage(
+                        message:
+                            // ignore: lines_longer_than_80_chars
+                            'You can only delete players who have never played any games.',
+                      );
+                    }
+                    return;
+                  }
+                  await query.delete();
+                  ref.invalidate(playersProvider);
+                },
+              ),
             ],
             autofocus: index == 0,
             title: Text(player.name),

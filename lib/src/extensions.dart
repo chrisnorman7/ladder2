@@ -40,3 +40,13 @@ extension LadderEventX on LadderEvent {
     ref.invalidate(eventGamesProvider(this));
   }
 }
+
+/// Useful extensions on [DateTime]s.
+extension DateTimeX on DateTime {
+  /// Return `this` [DateTime], but at midnight.
+  DateTime get midnight => DateTime(year, month, day);
+
+  /// Returns `true` if `this` [DateTime] is on the same day as [other].
+  bool isSameDayAs(final DateTime other) =>
+      other.year == year && other.month == month && other.day == day;
+}

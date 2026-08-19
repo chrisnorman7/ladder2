@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:backstreets_widgets/shortcuts.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/services.dart';
+import 'package:ladder2/src/extensions.dart';
 
 /// Provide a set of [actions] which can be performed on [DateTime] objects.
 class DateTimeActions {
@@ -42,19 +43,22 @@ class DateTimeActions {
       final duration = Duration(days: days.abs());
       final DateTime d;
       if (days == 0) {
-        final now = DateTime.now();
-        d = DateTime(now.year, now.month, now.day);
+        d = DateTime.now().midnight;
       } else if (days.isNegative) {
         final adjusted = dateTime.subtract(duration);
-        d = DateTime(adjusted.year, adjusted.month, adjusted.day);
+        d = adjusted.midnight;
       } else {
         final adjusted = dateTime.add(duration);
-        d = DateTime(adjusted.year, adjusted.month, adjusted.day);
+        d = adjusted.midnight;
       }
       final minDateTime = min;
       final maxDateTime = max;
-      if ((minDateTime == null || d.isAfter(minDateTime)) &&
-          (maxDateTime == null || d.isBefore(maxDateTime))) {
+      if ((minDateTime == null ||
+              d.isAfter(minDateTime) ||
+              d.isAtSameMomentAs(minDateTime)) &&
+          (maxDateTime == null ||
+              d.isBefore(maxDateTime) ||
+              d.isAtSameMomentAs(maxDateTime))) {
         return PerformableAction(
           name: name,
           activator: CrossPlatformSingleActivator(key),

@@ -42,7 +42,11 @@ final ladderEventsProvider =
           .orderBy((o) => o.when.asc())
           .get();
       return events
-          .where((event) => division.lastPointsReset.isBefore(event.when))
+          .where(
+            (event) =>
+                division.lastPointsReset.isBefore(event.when) ||
+                division.lastPointsReset.isAtSameMomentAs(event.when),
+          )
           .toList();
     });
 

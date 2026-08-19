@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ladder2/screens/main_screen.dart';
+import 'package:ladder2/src/extensions.dart';
 import 'package:ladder2/src/json/exported_division.dart';
 import 'package:ladder2/src/json/exported_event.dart';
 import 'package:ladder2/src/json/exported_game.dart';
@@ -124,7 +125,7 @@ class PlayerDivisionsScreen extends ConsumerWidget {
                     ..invalidate(playersProvider(division))
                     ..invalidate(ladderEventsProvider(division));
                 },
-                max: DateTime.now(),
+                max: DateTime.now().add(const Duration(days: 1)).midnight,
               );
               return PerformableActionsListTile(
                 actions: [

@@ -74,6 +74,28 @@ class LadderEventsPage extends ConsumerWidget {
                 ),
                 ...dateTimeActions.actions,
                 PerformableAction(
+                  name: 'Copy Schedule',
+                  activator: copyShortcut,
+                  invoke: () async {
+                    final games = await ref.read(
+                      eventGamesProvider(event).future,
+                    );
+                    final buffer = StringBuffer()
+                      ..writeln(
+                        // ignore: lines_longer_than_80_chars
+                        'Schedule for ${dateFormatter.format(event.when)}:',
+                      );
+                    for (var i = 0; i < games.length; i++) {
+                      final row = games[i];
+                      buffer.writeln(
+                        // ignore: lines_longer_than_80_chars
+                        '#${i + 1}: ${row.player1.name} vs ${row.player2.name}',
+                      );
+                    }
+                    buffer.toString().copyToClipboard();
+                  },
+                ),
+                PerformableAction(
                   name: 'Delete',
                   activator: deleteShortcut,
                   invoke: () async {

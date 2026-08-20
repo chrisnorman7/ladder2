@@ -10,7 +10,6 @@ import 'package:ladder2/src/database/tables.dart';
 import 'package:ladder2/src/extensions.dart';
 import 'package:ladder2/src/providers.dart';
 import 'package:ladder2/widgets/async_value_builder.dart';
-import 'package:ladder2/widgets/date_text.dart';
 
 /// Show games for the given [event].
 class EventGamesScreen extends ConsumerWidget {
@@ -57,25 +56,6 @@ class EventGamesScreen extends ConsumerWidget {
                   );
                   return PerformableActionsListTile(
                     actions: [
-                      PerformableAction(
-                        name: 'Copy Schedule',
-                        activator: copyShortcut,
-                        invoke: () {
-                          final buffer = StringBuffer()
-                            ..writeln(
-                              // ignore: lines_longer_than_80_chars
-                              'Schedule for ${dateFormatter.format(event.when)}:',
-                            );
-                          for (var i = 0; i < games.length; i++) {
-                            final row = games[i];
-                            buffer.writeln(
-                              // ignore: lines_longer_than_80_chars
-                              '#${i + 1}: ${row.player1.name} vs ${row.player2.name}',
-                            );
-                          }
-                          buffer.toString().copyToClipboard();
-                        },
-                      ),
                       PerformableAction(
                         name: 'Delete',
                         activator: deleteShortcut,
